@@ -17,15 +17,15 @@
 #include <cmath>
 
 DVMPlugin::DVMPlugin() {
-	registerActionType<Action_OpenMixer>("cz.danol.discordmixer.openmixer");
-	registerActionType<Action_VCMInfo>("cz.danol.discordmixer.user");
-	registerActionType<Action_VCMVolume>("cz.danol.discordmixer.volumeup");
-	registerActionType<Action_VCMVolume>("cz.danol.discordmixer.volumedown");
-	registerActionType<Action_VCMPaging>("cz.danol.discordmixer.nextpage");
-	registerActionType<Action_VCMPaging>("cz.danol.discordmixer.previouspage");
-	registerActionType<Action_Back>("cz.danol.discordmixer.back");
-	registerActionType<Action_Microphone>("cz.danol.discordmixer.microphone");
-	registerActionType<Action_Deafen>("cz.danol.discordmixer.deafen");
+	registerActionType<Action_OpenMixer>("com.thomast.discordmixer.openmixer");
+	registerActionType<Action_VCMInfo>("com.thomast.discordmixer.user");
+	registerActionType<Action_VCMVolume>("com.thomast.discordmixer.volumeup");
+	registerActionType<Action_VCMVolume>("com.thomast.discordmixer.volumedown");
+	registerActionType<Action_VCMPaging>("com.thomast.discordmixer.nextpage");
+	registerActionType<Action_VCMPaging>("com.thomast.discordmixer.previouspage");
+	registerActionType<Action_Back>("com.thomast.discordmixer.back");
+	registerActionType<Action_Microphone>("com.thomast.discordmixer.microphone");
+	registerActionType<Action_Deafen>("com.thomast.discordmixer.deafen");
 
 	connect(this, &QStreamDeckPlugin::initialized, this, &DVMPlugin::onInitialized);
 	connect(this, &QStreamDeckPlugin::eventReceived, this, &DVMPlugin::onStreamDeckEventReceived);
@@ -65,7 +65,7 @@ DVMPlugin::DVMPlugin() {
 				const QString appDir = QCoreApplication::applicationDirPath();
 				const QString oauthPath = !appDir.isEmpty() ? QDir::cleanPath(QDir(appDir).filePath("../discordOauth.json")) : "discordOauth.json";
 				QFile::remove(oauthPath);
-				QSettings regSettings(QSettings::UserScope, "Elgato Stream Deck Plugin", "cz.danol.discordmixer");
+				QSettings regSettings(QSettings::UserScope, "Elgato Stream Deck Plugin", "com.thomast.discordmixer");
 				regSettings.remove("discordOauth");
 				qDebug() << "Credentials changed, purged OAuth token cache";
 				discord.disconnect();

@@ -12,7 +12,7 @@
       "SupportedInMultiActions": false,
       "Tooltip": "Opens a mixer for Discord voice chat",
       "PropertyInspectorPath": "qtstreamdeck2/propertyinspector.html",
-      "UUID": "cz.danol.discordmixer.openmixer"
+      "UUID": "com.thomast.discordmixer.openmixer"
     },
     {
       "Icon": "icons/icons8_arrow_up_72px",
@@ -24,7 +24,7 @@
         }
       ],
       "Tooltip": "Closes the volume mixer",
-      "UUID": "cz.danol.discordmixer.back"
+      "UUID": "com.thomast.discordmixer.back"
     },
     {
       "Icon": "icons/icons8_user_72px",
@@ -59,7 +59,7 @@
       "UserTitleEnabled": false,
       "PropertyInspectorPath": "qtstreamdeck2/propertyinspector.html",
       "Tooltip": "Shows user avatar, status, volume.",
-      "UUID": "cz.danol.discordmixer.user"
+      "UUID": "com.thomast.discordmixer.user"
     },
     {
       "Icon": "icons/icons8_plus_math_72px",
@@ -76,7 +76,7 @@
       ],
       "PropertyInspectorPath": "qtstreamdeck2/propertyinspector.html",
       "Tooltip": "Increase volume",
-      "UUID": "cz.danol.discordmixer.volumeup"
+      "UUID": "com.thomast.discordmixer.volumeup"
     },
     {
       "Icon": "icons/icons8_minus_72px",
@@ -93,7 +93,7 @@
       ],
       "PropertyInspectorPath": "qtstreamdeck2/propertyinspector.html",
       "Tooltip": "Decrease volume",
-      "UUID": "cz.danol.discordmixer.volumedown"
+      "UUID": "com.thomast.discordmixer.volumedown"
     },
     {
       "Icon": "icons/icons8_sort_right_72px",
@@ -117,7 +117,7 @@
       "UserTitleEnabled": false,
       "Tooltip": "Next page",
       "PropertyInspectorPath": "qtstreamdeck2/propertyinspector.html",
-      "UUID": "cz.danol.discordmixer.nextpage"
+      "UUID": "com.thomast.discordmixer.nextpage"
     },
     {
       "Icon": "icons/icons8_sort_left_72px",
@@ -141,7 +141,7 @@
       "UserTitleEnabled": false,
       "Tooltip": "Previous page",
       "PropertyInspectorPath": "qtstreamdeck2/propertyinspector.html",
-      "UUID": "cz.danol.discordmixer.previouspage"
+      "UUID": "com.thomast.discordmixer.previouspage"
     },
     {
       "Icon": "icons/icons8_block_microphone_72px",
@@ -158,7 +158,7 @@
       ],
       "Tooltip": "Mute/unmute microphone",
       "PropertyInspectorPath": "qtstreamdeck2/propertyinspector.html",
-      "UUID": "cz.danol.discordmixer.microphone"
+      "UUID": "com.thomast.discordmixer.microphone"
     },
     {
       "Icon": "icons/icons8_no_audio_72px",
@@ -175,13 +175,13 @@
       ],
       "Tooltip": "Mute/unmute audio (deafen)",
       "PropertyInspectorPath": "qtstreamdeck2/propertyinspector.html",
-      "UUID": "cz.danol.discordmixer.deafen"
+      "UUID": "com.thomast.discordmixer.deafen"
     }
   ],
   "SDKVersion": 2,
-  "Author": "Danol (Maintained by ThomasThanos)",
+  "Author": "ThomasT",
   "CodePath": "bin/streamdeck-discordmixer.exe",
-  "UUID": "cz.danol.discordmixer",
+  "UUID": "com.thomast.discordmixer",
   "Description": "Provides a mixer for Discord voice chat that allows adjusting volume for individual users.\nThis application uses Icons8 icons (https://icons8.com)",
   "Category": "Discord Volume Mixer",
   "CategoryIcon": "icons/icons8_discord_new_72px",

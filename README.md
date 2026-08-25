@@ -38,7 +38,7 @@ Control your Discord voice chat directly from your Stream Deck without Alt-Tabbi
 ## ⚡ Quick 3-Step Setup
 
 ### 1️⃣ Install the Plugin
-Download the latest **[`cz.danol.discordmixer.streamDeckPlugin`](https://github.com/thomasthanos/StreamDeck-DiscordVolumeMixer-2026/releases/latest)** and double-click to install it automatically!
+Download the latest **[`com.thomast.discordmixer.streamDeckPlugin`](https://github.com/thomasthanos/StreamDeck-DiscordVolumeMixer-2026/releases/latest)** and double-click to install it automatically!
 
 ### 2️⃣ Create a Discord App
 1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and click **New Application** (name it e.g. `Deckaro` or `Mixer` — *do not include "Discord" in the name*).
@@ -94,7 +94,7 @@ cmake --install build
 | Contributor | Contributions | Profile |
 | :--- | :--- | :---: |
 | **Danol** | **Original Creator** — Architect of the original plugin, QtStreamDeck2 & QtDiscordIPC foundations. | [@CZDanol](https://github.com/CZDanol) |
-| **Thomas Thanos** | **2026 Edition Lead** — Full 2026 rewrite, ERR 8 multi-pipe retries, Qt 6.8+ LTS, 3D Apple icons, and token persistence. | [@thomasthanos](https://github.com/thomasthanos) |
+| **ThomasT** | **2026 Edition Lead** — Full 2026 rewrite, ERR 8 multi-pipe retries, Qt 6.8+ LTS, 3D Apple icons, and token persistence. | [@thomasthanos](https://github.com/thomasthanos) |
 | **Krabs** | **Testing & Profiles** — Profile layouts and testing for Stream Deck XL. | [@krabs-github](https://github.com/krabs-github) |
 
 ### Third-Party Material

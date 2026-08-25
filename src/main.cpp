@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 	qDebug() << QDateTime::currentDateTime().toString() << "Plugin starting";
 
 	DVMPlugin plugin;
-	plugin.init("cz.danol.discordmixer", app);
+	plugin.init("com.thomast.discordmixer", app);
 
 	return QGuiApplication::exec();
 }

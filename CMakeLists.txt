@@ -25,11 +25,11 @@ endif ()
 
 if (BUILD_IN_STREAMDECK_PLUGINS_DIR)
     file(TO_CMAKE_PATH "$ENV{APPDATA}" appdata_path)
-    set(target_directory "${appdata_path}/Elgato/StreamDeck/Plugins/cz.danol.discordmixer.sdPlugin")
+    set(target_directory "${appdata_path}/Elgato/StreamDeck/Plugins/com.thomast.discordmixer.sdPlugin")
 elseif (PLUGIN_OUTPUT_DIR)
     set(target_directory "${PLUGIN_OUTPUT_DIR}")
 else ()
-    set(target_directory "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/cz.danol.discordmixer.sdPlugin")
+    set(target_directory "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/com.thomast.discordmixer.sdPlugin")
 endif ()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${target_directory}/bin")

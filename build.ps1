@@ -7,6 +7,7 @@ Write-Host " Building StreamDeck Discord Volume Mixer " -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
 
 # 1. Setup Toolchain Paths
+$qtRoot = "C:\Users\Thomas\Documents\Codex\2026-08-25\c-users-thomas-downloads-streamdeck-discordvolumemixer2\work\qt\6.8.3\mingw_64"
 $qtBin = "C:\Users\Thomas\Documents\Codex\2026-08-25\c-users-thomas-downloads-streamdeck-discordvolumemixer2\work\qt\Tools\mingw1310_64\bin"
 $cmakeBin = "C:\Users\Thomas\Documents\Codex\2026-08-25\c-users-thomas-downloads-streamdeck-discordvolumemixer2\work\qt\Tools\CMake_64\bin"
 
@@ -15,7 +16,7 @@ if (Test-Path $qtBin) { $env:PATH = "$qtBin;$cmakeBin;" + $env:PATH }
 # 2. Configure (if build folder does not exist)
 if (!(Test-Path "build\CMakeCache.txt")) {
     Write-Host "`n[1/3] Configuring CMake..." -ForegroundColor Yellow
-    cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+    cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$qtRoot"
 }
 
 # 3. Compile
@@ -27,10 +28,10 @@ Write-Host "`n[3/3] Packaging plugin bundle & deploying Qt DLLs..." -ForegroundC
 cmake --install build
 
 # 5. Create GitHub Release Package (.streamDeckPlugin & .zip) in release/
-$sourceBundle = "$PSScriptRoot\bin\Release\cz.danol.discordmixer.sdPlugin"
+$sourceBundle = "$PSScriptRoot\bin\Release\com.thomast.discordmixer.sdPlugin"
 $releaseDir = "$PSScriptRoot\release"
 if (!(Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null }
-$streamDeckPluginFile = "$releaseDir\cz.danol.discordmixer.streamDeckPlugin"
+$streamDeckPluginFile = "$releaseDir\com.thomast.discordmixer.streamDeckPlugin"
 $zipReleaseFile = "$releaseDir\StreamDeck-DiscordVolumeMixer-v2.0.3-Windows-x64.zip"
 
 if (Test-Path $streamDeckPluginFile) { Remove-Item $streamDeckPluginFile -Force }
@@ -39,7 +40,7 @@ if (Test-Path $zipReleaseFile) { Remove-Item $zipReleaseFile -Force }
 Write-Host "`n[4/4] Creating GitHub Release package in release/..." -ForegroundColor Yellow
 Compress-Archive -Path "$sourceBundle" -DestinationPath "$streamDeckPluginFile"
 Copy-Item "$streamDeckPluginFile" -Destination "$zipReleaseFile"
-Write-Host "Created: release\cz.danol.discordmixer.streamDeckPlugin" -ForegroundColor Cyan
+Write-Host "Created: release\com.thomast.discordmixer.streamDeckPlugin" -ForegroundColor Cyan
 Write-Host "Created: release\StreamDeck-DiscordVolumeMixer-v2.0.3-Windows-x64.zip" -ForegroundColor Cyan
 
 # 6. Copy plugin bundle to Stream Deck AppData (for local testing)
@@ -63,7 +64,7 @@ if (Test-Path $sourceBundle) {
     catch {
         Write-Host "`n[NOTE] Could not overwrite files in AppData because Stream Deck is currently running." -ForegroundColor Yellow
         Write-Host "Close the Stream Deck application and run ./build.ps1 again to update the live plugin." -ForegroundColor Yellow
-        Write-Host "`nThe compiled bundle is ready at: bin/Release/cz.danol.discordmixer.sdPlugin" -ForegroundColor Green
+        Write-Host "`nThe compiled bundle is ready at: bin/Release/com.thomasthanos.discordmixer.sdPlugin" -ForegroundColor Green
         Write-Host "The GitHub Release files are ready at: release/" -ForegroundColor Green
     }
 }

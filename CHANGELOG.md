@@ -8,7 +8,7 @@ versions follow `manifest.json`.
 ### Fixed
 - **ERR 8 Handshake Failures**: Added multi-pipe retry logic across all Discord IPC endpoints (`discord-ipc-0` through `discord-ipc-9`). If an orphaned/stale pipe rejects the handshake, the plugin automatically tries the next pipe instead of failing.
 - **Handshake Timeouts**: Increased default handshake timeout from 10s to 20s to reliably support cold starts and high system load.
-- **Repeated Authorization on Restart**: Resolved token persistence failure by using absolute AppData paths and Windows Registry dual-storage (`HKCU\Software\Elgato Stream Deck Plugin\cz.danol.discordmixer\discordOauth`).
+- **Repeated Authorization on Restart**: Resolved token persistence failure by using absolute AppData paths and Windows Registry dual-storage (`HKCU\Software\Elgato Stream Deck Plugin\com.thomast.discordmixer\discordOauth`).
 - **Submodule Architecture**: Integrated `qtdiscordipc` and `qtstreamdeck2` directly into the repository, eliminating git detached head and submodule synchronization issues.
 
 ### Added
