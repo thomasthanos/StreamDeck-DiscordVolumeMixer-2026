@@ -1,4 +1,4 @@
-
+Add-Type -AssemblyName System.Drawing
 $outDirs = @(
     "H:\Projects\ThomasThanos\StreamDeck-DiscordVolumeMixer-2026\dist\icons",
     "H:\Projects\ThomasThanos\StreamDeck-DiscordVolumeMixer-2026\bin\Release\cz.danol.discordmixer.sdPlugin\icons",
@@ -31,21 +31,20 @@ function Save-IconPair($bmp144, $baseName) {
 
 function Create-RoundedRectPath([System.Drawing.RectangleF]$rect, [float]$radius) {
     $path = New-Object System.Drawing.Drawing2D.GraphicsPath
-    $diameter = $radius * 2
-    $size = New-Object System.Drawing.SizeF($diameter, $diameter)
-    $arc = [System.Drawing.RectangleF]::new($rect.Location, $size)
+    $d = [float]($radius * 2.0)
+    $x = [float]$rect.X
+    $y = [float]$rect.Y
+    $w = [float]$rect.Width
+    $h = [float]$rect.Height
 
     # Top Left
-    $path.AddArc($arc, 180, 90)
+    $path.AddArc($x, $y, $d, $d, 180.0, 90.0)
     # Top Right
-    $arc.X = $rect.Right - $diameter
-    $path.AddArc($arc, 270, 90)
+    $path.AddArc(($x + $w - $d), $y, $d, $d, 270.0, 90.0)
     # Bottom Right
-    $arc.Y = $rect.Bottom - $diameter
-    $path.AddArc($arc, 0, 90)
+    $path.AddArc(($x + $w - $d), ($y + $h - $d), $d, $d, 0.0, 90.0)
     # Bottom Left
-    $arc.X = $rect.Left
-    $path.AddArc($arc, 90, 90)
+    $path.AddArc($x, ($y + $h - $d), $d, $d, 90.0, 90.0)
     $path.CloseFigure()
     return $path
 }
@@ -89,7 +88,7 @@ $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x6E, 0x7B, 0xFA)) ([System.Drawing.Color]::FromArgb(0x3B, 0x46, 0xC4)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x6E, 0x7B, 0xFA)) ([System.Drawing.Color]::FromArgb(0x3B, 0x46, 0xC4)) 30.0
 
 # 3D Clyde Face Path
 $clyde = New-Object System.Drawing.Drawing2D.GraphicsPath
@@ -136,7 +135,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 
 # Neon Audio Halo
 $haloBrush = New-Object System.Drawing.Drawing2D.PathGradientBrush((Create-RoundedRectPath ([System.Drawing.RectangleF]::new(36, 32, 72, 72)) 36))
@@ -194,7 +193,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 
 # Speaker Cone
 $cone = New-Object System.Drawing.Drawing2D.GraphicsPath
@@ -249,7 +248,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 
 $plusH = Create-RoundedRectPath ([System.Drawing.RectangleF]::new(48, 66, 48, 12)) 6
 $plusV = Create-RoundedRectPath ([System.Drawing.RectangleF]::new(66, 48, 12, 48)) 6
@@ -269,7 +268,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 
 $minusH = Create-RoundedRectPath ([System.Drawing.RectangleF]::new(48, 66, 48, 12)) 6
 $minusBrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(([System.Drawing.RectangleF]::new(48, 66, 48, 12)), [System.Drawing.Color]::FromArgb(255, 255, 255), [System.Drawing.Color]::FromArgb(0x8E, 0xA0, 0xFF), [System.Drawing.Drawing2D.LinearGradientMode]::Vertical)
@@ -287,7 +286,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 
 $arrow = New-Object System.Drawing.Drawing2D.GraphicsPath
 $arrow.AddLine(72, 46, 96, 70)
@@ -311,7 +310,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 
 $chevPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(255, 255, 255), 7.0)
 $chevPen.StartCap = $chevPen.EndCap = $chevPen.LineJoin = [System.Drawing.Drawing2D.LineCap]::Round
@@ -329,7 +328,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 
 $chevPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(255, 255, 255), 7.0)
 $chevPen.StartCap = $chevPen.EndCap = $chevPen.LineJoin = [System.Drawing.Drawing2D.LineCap]::Round
@@ -347,7 +346,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 
 $head = New-Object System.Drawing.Drawing2D.GraphicsPath
 $head.AddEllipse(54, 40, 36, 36)
@@ -369,7 +368,7 @@ $bmp = New-Object System.Drawing.Bitmap(144, 144, [System.Drawing.Imaging.PixelF
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-Draw-AppleTile $g ([System.Drawing.RectangleF]::new(0, 0, 144, 144)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 0.01
+Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.Drawing.Color]::FromArgb(0x2B, 0x2D, 0x31)) ([System.Drawing.Color]::FromArgb(0x15, 0x16, 0x18)) 30.0
 $g.Dispose()
 Save-IconPair $bmp "noicon"
 $bmp.Dispose()
@@ -412,5 +411,6 @@ $bmp.Dispose()
 Write-Host "Generated: speaking_deco.png"
 
 Write-Host "All 3D Apple-style icons refactored & deployed successfully!"
+
 
 
