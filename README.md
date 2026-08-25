@@ -148,6 +148,21 @@ cmake --install build
 
 <img src=".github/assets/divider.svg" width="100%" alt="">
 
+## 👥 Contributors & Credits
+
+| Contributor | Role & Contributions | Profile |
+| :--- | :--- | :---: |
+| **Danol** | **Original Creator & Architecture** — Creator of the original StreamDeck Discord Volume Mixer, QtStreamDeck2, and QtDiscordIPC foundations. | [@CZDanol](https://github.com/CZDanol) |
+| **Thomas Thanos** | **2026 Edition Lead & Maintainer** — Full 2026 modernization, ERR 8 multi-pipe retry engine, Qt 6.8+ LTS / C++20 migration, 3D Apple Squircle design overhaul, deep LCD dark mode, smart nickname elision, and zero re-auth token persistence. | [@thomasthanos](https://github.com/thomasthanos) |
+| **Krabs** | **Testing & Profiles** — Testing and profile layout design for the Stream Deck XL version. | [@krabs-github](https://github.com/krabs-github) |
+
+### Third-Party Licenses
+- **Qt Framework**: [The Qt Company](https://www.qt.io/) (LGPLv3)
+- **Icons**: [Icons8](https://icons8.com/) (Custom 3D Apple Squircle vector remastering)
+- For complete details, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+<img src=".github/assets/divider.svg" width="100%" alt="">
+
 ## <img src=".github/assets/icon-license.svg" width="22" align="middle"> Licence & Terms
 
 **Source-available, all rights reserved.**
@@ -155,11 +170,6 @@ cmake --install build
 The source code in this repository is published for auditing, transparency, and personal non-commercial compilation. Unauthorized redistribution, publishing to marketplace stores (including the Elgato Stream Deck Marketplace), commercial exploitation, or repackaging without prior written permission is strictly prohibited.
 
 [![Read the licence](.github/assets/btn-licence-read.svg)](LICENSE)
-
-### Attribution & Upstream Credits
-- **Original Creator**: Developed by **Danol** ([@CZDanol](https://github.com/CZDanol)) — [StreamDeck-DiscordVolumeMixer2](https://github.com/CZDanol/StreamDeck-DiscordVolumeMixer2).
-- **2026 Maintenance & Modernization**: **Thomas Thanos** ([@thomasthanos](https://github.com/thomasthanos)).
-- **Third-Party Material**: See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for details on third-party licenses (Qt Framework, Icons8).
 
 ---
 
