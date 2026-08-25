@@ -1,30 +1,29 @@
-# Stream Deck Discord Volume Mixer (2026 Edition)
-
 <div align="center">
 
-[![Release](https://img.shields.io/badge/version-2.0.3.0-blue.svg?style=flat-square)](https://github.com/thomasthanos/StreamDeck-DiscordVolumeMixer-2026/releases)
-[![Qt](https://img.shields.io/badge/Qt-6.8%2B-green.svg?style=flat-square)](https://www.qt.io/)
-[![C++](https://img.shields.io/badge/C%2B%2B-20-blueviolet.svg?style=flat-square)](https://isocpp.org/)
-[![Stream Deck SDK](https://img.shields.io/badge/Stream%20Deck%20SDK-v2-orange.svg?style=flat-square)](https://developer.elgato.com/documentation/stream-deck/)
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-lightgrey.svg?style=flat-square)](https://www.microsoft.com/windows)
-[![License](https://img.shields.io/badge/license-GPLv3-yellow.svg?style=flat-square)](LICENSE.md)
+<img src=".github/assets/banner-discord.svg" alt="Stream Deck Discord Volume Mixer" width="100%">
 
-**A high-performance Elgato Stream Deck plugin for individual per-user voice chat volume control and status management in Discord.**
+<br>
 
-[Features](#-features) • [Installation & Setup](#-setup--configuration) • [Troubleshooting](#-troubleshooting) • [Building from Source](#-building-from-source) • [Credits & Attribution](#-credits--attribution)
+[![Install](.github/assets/btn-install.svg)](#-setup--configuration)
+[![Features](.github/assets/btn-features.svg)](#-features)
+[![Settings](.github/assets/btn-settings.svg)](#step-2-configure-the-plugin-in-stream-deck)
+[![Troubleshooting](.github/assets/btn-troubleshooting.svg)](#-troubleshooting--error-codes)
+[![License](.github/assets/btn-licence-read.svg)](#-licence--terms)
+
+<br>
 
 </div>
 
----
+<img src=".github/assets/divider.svg" width="100%" alt="">
 
-## 🎧 What It Does
+## <img src=".github/assets/icon-sparkle.svg" width="22" align="middle"> What It Does
 
-Managing voice volume in busy Discord channels usually means opening Discord, finding the user, and sliding volume bars while gaming or streaming.
+Managing voice volume in busy Discord channels usually means Alt-Tabbing or opening Discord, finding the user, and sliding volume bars while gaming or streaming.
 
-**Stream Deck Discord Volume Mixer** brings full Discord audio mixer hardware controls to your desk:
+**Stream Deck Discord Volume Mixer** brings full Discord voice hardware mixer controls directly to your desk:
 - 🔊 **Individual Volume Control**: Adjust any channel member's volume independently in real-time.
 - 🔇 **One-Touch Mute / Unmute**: Toggle mute on specific users with a single button press or dial tap.
-- 🟢 **Live Speaking Indicators**: Instant visual feedback with glowing Discord-green borders (`#23A55A`) when a user speaks.
+- 🟢 **Live Speaking Indicators**: Instant visual feedback with vibrant glowing Discord-green borders (`#23A55A`) when a user speaks.
 - 🔴 **Mute & Deafen Status**: Quick-glance mute badges (`#ED4245`) and self mic/audio mute controls.
 - 🎛️ **Stream Deck + Dial Support**: Full touchscreen LCD feedback and physical rotary encoder volume knobs.
 
@@ -35,9 +34,9 @@ Managing voice volume in busy Discord channels usually means opening Discord, fi
 
 </div>
 
----
+<img src=".github/assets/divider.svg" width="100%" alt="">
 
-## ✨ Features
+## <img src=".github/assets/icon-settings.svg" width="22" align="middle"> Features
 
 | Feature | Keypad (Standard, Mini, XL, Mobile) | Rotary Encoders (Stream Deck +) |
 | :--- | :--- | :--- |
@@ -49,9 +48,9 @@ Managing voice volume in busy Discord channels usually means opening Discord, fi
 | **Channel Navigation** | Multi-page next/previous navigation buttons | Dial push / tap user paging cycling |
 | **Self Audio Controls** | Toggle Microphone Mute & Deafen | Toggle Microphone Mute & Deafen |
 
----
+<img src=".github/assets/divider.svg" width="100%" alt="">
 
-## 🚀 Setup & Configuration
+## <img src=".github/assets/icon-install.svg" width="22" align="middle"> Setup & Configuration
 
 ### Prerequisites
 - **Discord Desktop Client** running on Windows (10 or 11, 64-bit).
@@ -60,7 +59,10 @@ Managing voice volume in busy Discord channels usually means opening Discord, fi
 ### Step 1: Create Your Discord Application
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
 2. Click **New Application** and enter a name (e.g., `Deckaro` or `VolumeMixer`).
-   > ⚠️ **Important**: Do not use the word *"Discord"* in your application name.
+   
+   ![Note](.github/assets/callout-note.svg)
+   > **Do not use the word "Discord" in your application name**, as Discord's RPC server will reject the connection.
+
 3. Under **OAuth2 → General**:
    - Under **Redirects**, click **Add Redirect** and enter exactly:
      ```
@@ -93,11 +95,11 @@ Managing voice volume in busy Discord channels usually means opening Discord, fi
 
 </div>
 
----
+<img src=".github/assets/divider.svg" width="100%" alt="">
 
-## 🛠️ Troubleshooting & Error Messages
+## <img src=".github/assets/icon-help.svg" width="22" align="middle"> Troubleshooting & Error Codes
 
-The 2026 edition features intelligent connection recovery, multi-pipe handshake retries, and clear human-readable status codes on the buttons:
+The 2026 edition features intelligent connection recovery, multi-pipe handshake retries (pipes 0–9), and clear human-readable status codes on the buttons:
 
 | Display Text | Meaning | Solution |
 | :--- | :--- | :--- |
@@ -111,16 +113,15 @@ The 2026 edition features intelligent connection recovery, multi-pipe handshake 
 | `TOKEN EXP` | Cached OAuth token was revoked or expired. | The plugin automatically purges stale tokens; re-authorize when prompted. |
 | `NOBODY IN VOICE` | You are connected, but not in a voice channel or alone. | Join a voice channel with other users. |
 
----
+<img src=".github/assets/divider.svg" width="100%" alt="">
 
-## 🏗️ Building from Source
+## <img src=".github/assets/icon-code.svg" width="22" align="middle"> Building from Source
 
 ### Requirements
 - **CMake 3.20+**
 - **Qt 6.5+ LTS** (tested on **Qt 6.8.3** with MinGW 13.1.0 and MSVC 2022 x64)
 - **C++20** compliant compiler
 
-### Build & Deploy
 ```powershell
 # Configure
 cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="C:/Qt/6.8.3/mingw_64"
@@ -132,32 +133,26 @@ cmake --build build -j8
 cmake --install build
 ```
 
----
+<img src=".github/assets/divider.svg" width="100%" alt="">
 
-## 📜 Credits & Attribution
+## <img src=".github/assets/icon-license.svg" width="22" align="middle"> Licence & Terms
 
-### Original Project & Authorship
+**Source-available, all rights reserved.**
+
+The source code in this repository is published for auditing, transparency, and personal non-commercial compilation. Unauthorized redistribution, publishing to marketplace stores (including the Elgato Stream Deck Marketplace), commercial exploitation, or repackaging without prior written permission is strictly prohibited.
+
+[![Read the licence](.github/assets/btn-licence-read.svg)](LICENSE)
+
+### Attribution & Upstream Credits
 - **Original Creator**: Developed by **Danol** ([@CZDanol](https://github.com/CZDanol)) — [StreamDeck-DiscordVolumeMixer2](https://github.com/CZDanol/StreamDeck-DiscordVolumeMixer2).
-- **Contributor**: Kudos to **Krabs** ([@krabs-github](https://github.com/krabs-github)) for XL profile contributions and early testing.
-
-### 2026 Maintenance & Modernization
-- **Maintained by**: **Thomas Thanos** ([@thomasthanos](https://github.com/thomasthanos)) — [StreamDeck-DiscordVolumeMixer-2026](https://github.com/thomasthanos/StreamDeck-DiscordVolumeMixer-2026).
-  - Upgraded to modern Qt 6.8+ LTS architecture and C++20.
-  - Resolved `ERR 8` handshake timeouts and implemented multi-pipe IPC fallback (0–9).
-  - Modernized visual styling with Discord-native colors, glowing speaking rings, and antialiased circular LCD dial avatars.
-  - Added atomic token caching, automatic stale cache invalidation, and descriptive button diagnostics.
-
-### Third-Party Libraries & Assets
-- [Qt Framework](https://www.qt.io/) (Core, Network, WebSockets, Gui)
-- [QtStreamDeck2](https://github.com/CZDanol/QtStreamDeck2)
-- [QtDiscordIPC](https://github.com/CZDanol/QtDiscordIPC)
-- Icons provided by [Icons8](https://icons8.com/)
+- **2026 Maintenance & Modernization**: **Thomas Thanos** ([@thomasthanos](https://github.com/thomasthanos)).
+- **Third-Party Material**: See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for details on third-party licenses (Qt Framework, Icons8).
 
 ---
 
 <div align="center">
 
-<sub>Licensed under the <a href="LICENSE.md">GNU General Public License v3.0</a>. Not affiliated with or endorsed by Discord Inc. or Elgato / Corsair.</sub>
+<sub>Not affiliated with, endorsed by, or connected to Discord Inc., Elgato, or Corsair.</sub>
 
 </div>
 
