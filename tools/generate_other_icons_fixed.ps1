@@ -197,27 +197,27 @@ Draw-AppleTile $g ([System.Drawing.RectangleF]::new(10, 10, 124, 124)) ([System.
 
 # Speaker Cone
 $cone = New-Object System.Drawing.Drawing2D.GraphicsPath
-$cone.AddLine(28, 60, 44, 60)
-$cone.AddLine(44, 60, 66, 44)
-$cone.AddLine(66, 44, 66, 100)
-$cone.AddLine(66, 100, 44, 84)
-$cone.AddLine(44, 84, 28, 84)
+$cone.AddLine(28, 59, 44, 59)
+$cone.AddLine(44, 59, 64, 45)
+$cone.AddLine(64, 45, 64, 99)
+$cone.AddLine(64, 99, 44, 85)
+$cone.AddLine(44, 85, 28, 85)
 $cone.CloseFigure()
 
-$coneBrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(([System.Drawing.RectangleF]::new(28, 44, 38, 56)), [System.Drawing.Color]::FromArgb(255, 255, 255), [System.Drawing.Color]::FromArgb(0x58, 0x65, 0xF2), [System.Drawing.Drawing2D.LinearGradientMode]::Vertical)
+$coneBrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(([System.Drawing.RectangleF]::new(28, 45, 36, 54)), [System.Drawing.Color]::FromArgb(255, 255, 255), [System.Drawing.Color]::FromArgb(0x58, 0x65, 0xF2), [System.Drawing.Drawing2D.LinearGradientMode]::Vertical)
 $g.FillPath($coneBrush, $cone)
 $g.DrawPath((New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(200, 255, 255, 255), 1.5)), $cone)
 $coneBrush.Dispose()
 $cone.Dispose()
 
-# Soundwaves
-$wPen1 = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(0xDB, 0xDE, 0xE1), 4.0); $wPen1.StartCap = $wPen1.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
-$wPen2 = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(0x58, 0x65, 0xF2), 4.0); $wPen2.StartCap = $wPen2.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
-$wPen3 = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(0x23, 0xA5, 0x5A), 4.0); $wPen3.StartCap = $wPen3.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+# Soundwaves (properly proportioned and kept within bounds)
+$wPen1 = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(0xDB, 0xDE, 0xE1), 4.5); $wPen1.StartCap = $wPen1.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+$wPen2 = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(0x58, 0x65, 0xF2), 4.5); $wPen2.StartCap = $wPen2.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+$wPen3 = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(0x57, 0xF2, 0x87), 4.5); $wPen3.StartCap = $wPen3.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
 
-$g.DrawArc($wPen1, ([System.Drawing.RectangleF]::new(56, 56, 32, 32)), -50, 100)
-$g.DrawArc($wPen2, ([System.Drawing.RectangleF]::new(66, 46, 52, 52)), -50, 100)
-$g.DrawArc($wPen3, ([System.Drawing.RectangleF]::new(76, 36, 72, 72)), -50, 100)
+$g.DrawArc($wPen1, ([System.Drawing.RectangleF]::new(54, 58, 28, 28)), -45, 90)
+$g.DrawArc($wPen2, ([System.Drawing.RectangleF]::new(50, 48, 48, 48)), -45, 90)
+$g.DrawArc($wPen3, ([System.Drawing.RectangleF]::new(46, 38, 68, 68)), -45, 90)
 
 $wPen1.Dispose(); $wPen2.Dispose(); $wPen3.Dispose()
 $g.Dispose()
