@@ -179,7 +179,7 @@
       "UUID": "com.thomast.discordmixer.deafen"
     }
   ],
-  "SDKVersion": 2,
+  "SDKVersion": 3,
   "Author": "ThomasT",
   "CodePath": "bin/streamdeck-discordmixer.exe",
   "UUID": "com.thomast.discordmixer",
@@ -224,6 +224,6 @@
     }
   ],
   "Software": {
-    "MinimumVersion": "6.6"
+    "MinimumVersion": "6.9"
   }
 }
