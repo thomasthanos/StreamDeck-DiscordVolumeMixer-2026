@@ -26,8 +26,23 @@ cmake --build build -j8
 Write-Host "`n[3/3] Packaging plugin bundle & deploying Qt DLLs..." -ForegroundColor Yellow
 cmake --install build
 
-# 5. Copy plugin bundle to Stream Deck AppData
+# 5. Create GitHub Release Package (.streamDeckPlugin & .zip) in release/
 $sourceBundle = "$PSScriptRoot\bin\Release\cz.danol.discordmixer.sdPlugin"
+$releaseDir = "$PSScriptRoot\release"
+if (!(Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null }
+$streamDeckPluginFile = "$releaseDir\cz.danol.discordmixer.streamDeckPlugin"
+$zipReleaseFile = "$releaseDir\StreamDeck-DiscordVolumeMixer-v2.0.3-Windows-x64.zip"
+
+if (Test-Path $streamDeckPluginFile) { Remove-Item $streamDeckPluginFile -Force }
+if (Test-Path $zipReleaseFile) { Remove-Item $zipReleaseFile -Force }
+
+Write-Host "`n[4/4] Creating GitHub Release package in release/..." -ForegroundColor Yellow
+Compress-Archive -Path "$sourceBundle" -DestinationPath "$streamDeckPluginFile"
+Copy-Item "$streamDeckPluginFile" -Destination "$zipReleaseFile"
+Write-Host "Created: release\cz.danol.discordmixer.streamDeckPlugin" -ForegroundColor Cyan
+Write-Host "Created: release\StreamDeck-DiscordVolumeMixer-v2.0.3-Windows-x64.zip" -ForegroundColor Cyan
+
+# 6. Copy plugin bundle to Stream Deck AppData (for local testing)
 $pluginsDir = "$env:APPDATA\Elgato\StreamDeck\Plugins"
 
 if (Test-Path $sourceBundle) {
@@ -42,12 +57,13 @@ if (Test-Path $sourceBundle) {
         }
         Copy-Item -Path "$sourceBundle" -Destination "$pluginsDir\" -Recurse -Force
         Write-Host "`n=========================================" -ForegroundColor Green
-        Write-Host " BUILD & DEPLOY COMPLETE!                " -ForegroundColor Green
+        Write-Host " BUILD, RELEASE & DEPLOY COMPLETE!       " -ForegroundColor Green
         Write-Host "=========================================" -ForegroundColor Green
     }
     catch {
         Write-Host "`n[NOTE] Could not overwrite files in AppData because Stream Deck is currently running." -ForegroundColor Yellow
         Write-Host "Close the Stream Deck application and run ./build.ps1 again to update the live plugin." -ForegroundColor Yellow
         Write-Host "`nThe compiled bundle is ready at: bin/Release/cz.danol.discordmixer.sdPlugin" -ForegroundColor Green
+        Write-Host "The GitHub Release files are ready at: release/" -ForegroundColor Green
     }
 }

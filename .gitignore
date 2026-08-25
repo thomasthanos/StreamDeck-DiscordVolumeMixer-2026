@@ -4,6 +4,7 @@
 /build-*/
 /build_*/
 /cmake-build-*/
+/release/
 /out/
 CMakeLists.txt.user*
 CMakeUserPresets.json
