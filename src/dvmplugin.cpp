@@ -122,12 +122,13 @@ void DVMPlugin::connectToDiscord() {
 	}
 	else {
 		emit buttonsUpdateRequested();
-		if(discord.connectionError() == QStringLiteral("BAD CLIENT")) {
+		const QString err = discord.connectionError();
+		if(err == QStringLiteral("BAD CLIENT") || err.contains(QStringLiteral("cancelled"), Qt::CaseInsensitive) || err.contains(QStringLiteral("invalid_scope"), Qt::CaseInsensitive)) {
 			rejectedClientID_ = clientID;
 			discordReconnectTimer_.stop();
 			return;
 		}
-		if(discord.connectionError() == QStringLiteral("NO ID/SECRET")) {
+		if(err == QStringLiteral("NO ID/SECRET")) {
 			discordReconnectTimer_.stop();
 			return;
 		}
