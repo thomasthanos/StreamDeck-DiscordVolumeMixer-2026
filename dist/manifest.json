@@ -1,4 +1,5 @@
 {
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "Actions": [
     {
       "Icon": "icons/icons8_discord_new_72px",
@@ -223,6 +224,6 @@
     }
   ],
   "Software": {
-    "MinimumVersion": "6.5"
+    "MinimumVersion": "6.6"
   }
 }
