@@ -15,7 +15,7 @@ function Render-OfficialDiscordIcon {
 
     # 1. Drop shadow under squircle
     $shadowBrush = New-Object System.Windows.Media.SolidColorBrush([System.Windows.Media.Color]::FromArgb(90, 0, 0, 0))
-    $dc.DrawRoundedRectangle($shadowBrush, $null, [System.Windows.Rect]::new(0, 4, 144, 144), 0.01, 0.01)
+    $dc.DrawRoundedRectangle($shadowBrush, $null, [System.Windows.Rect]::new(10, 14, 124, 124), 30, 30)
 
     # 2. Main Apple 3D Squircle Blurple Gradient
     $bgGrad = New-Object System.Windows.Media.LinearGradientBrush(
@@ -34,7 +34,7 @@ function Render-OfficialDiscordIcon {
     )
     $rimPen = New-Object System.Windows.Media.Pen($rimGrad, 1.6)
 
-    $dc.DrawRoundedRectangle($bgGrad, $rimPen, [System.Windows.Rect]::new(0, 0, 144, 144), 0.01, 0.01)
+    $dc.DrawRoundedRectangle($bgGrad, $rimPen, [System.Windows.Rect]::new(10, 10, 124, 124), 30, 30)
 
     # 4. Top Glass Specular Shine
     $shineGrad = New-Object System.Windows.Media.LinearGradientBrush(
@@ -43,7 +43,7 @@ function Render-OfficialDiscordIcon {
         [System.Windows.Point]::new(0, 0),
         [System.Windows.Point]::new(0, 1)
     )
-    $dc.DrawRoundedRectangle($shineGrad, $null, [System.Windows.Rect]::new(6, 2, 132, 60), 0.01, 0.01)
+    $dc.DrawRoundedRectangle($shineGrad, $null, [System.Windows.Rect]::new(16, 12, 112, 54), 22, 22)
 
     # 5. Exact Official Discord Clyde Logo Vector
     $clydeSvg = "M 80.5 15 C 74.3 12.1 67.7 10 60.7 8.9 C 60.6 9.1 60.4 9.4 60.3 9.7 C 52.9 8.6 45.4 8.6 38.1 9.7 C 38 9.4 37.8 9.1 37.7 8.9 C 30.7 10 24.1 12.1 17.9 15 C 8.2 29.5 5.5 43.6 6.8 57.5 C 13.3 62.3 19.6 65.2 25.8 67.1 C 27.3 65.1 28.6 62.9 29.7 60.6 C 27.4 59.8 25.3 58.7 23.3 57.3 C 23.9 56.9 24.4 56.5 24.9 56.1 C 37.1 61.8 50.4 61.8 62.4 56.1 C 63 56.5 63.5 56.9 64 57.3 C 62 58.7 59.9 59.8 57.6 60.6 C 58.8 62.9 60.1 65.1 61.5 67.1 C 67.7 65.2 74.1 62.3 80.6 57.5 C 82.2 41.5 77.8 27.6 80.5 15 Z M 31.7 48.9 C 28 48.9 24.9 45.5 24.9 41.3 C 24.9 37.1 27.9 33.7 31.7 33.7 C 35.5 33.7 38.6 37.1 38.5 41.3 C 38.5 45.5 35.5 48.9 31.7 48.9 Z M 56.6 48.9 C 52.9 48.9 49.8 45.5 49.8 41.3 C 49.8 37.1 52.8 33.7 56.6 33.7 C 60.4 33.7 63.5 37.1 63.4 41.3 C 63.4 45.5 60.4 48.9 56.6 48.9 Z"
@@ -98,7 +98,7 @@ function Render-OfficialDiscordIcon {
     $dv72 = New-Object System.Windows.Media.DrawingVisual
     $dc72 = $dv72.RenderOpen()
     $dc72.PushTransform([System.Windows.Media.ScaleTransform]::new(0.5, 0.5))
-    $dc72.DrawImage($rtb144, [System.Windows.Rect]::new(0, 0, 144, 144))
+    $dc72.DrawImage($rtb144, [System.Windows.Rect]::new(10, 10, 124, 124))
     $dc72.Close()
 
     $rtb72 = New-Object System.Windows.Media.Imaging.RenderTargetBitmap(72, 72, 96, 96, [System.Windows.Media.PixelFormats]::Pbgra32)
