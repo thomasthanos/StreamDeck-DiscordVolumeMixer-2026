@@ -37,9 +37,9 @@ $zipReleaseFile = "$releaseDir\StreamDeck-DiscordVolumeMixer-v2.0.3-Windows-x64.
 if (Test-Path $streamDeckPluginFile) { Remove-Item $streamDeckPluginFile -Force }
 if (Test-Path $zipReleaseFile) { Remove-Item $zipReleaseFile -Force }
 
-Write-Host "`n[4/4] Creating GitHub Release package in release/..." -ForegroundColor Yellow
-Compress-Archive -Path "$sourceBundle" -DestinationPath "$streamDeckPluginFile"
-Copy-Item "$streamDeckPluginFile" -Destination "$zipReleaseFile"
+Write-Host "`n[4/4] Creating official Elgato Marketplace Release package in release/..." -ForegroundColor Yellow
+npx -y @elgato/cli pack "$sourceBundle" --output "$releaseDir" -f
+Copy-Item "$streamDeckPluginFile" -Destination "$zipReleaseFile" -Force
 Write-Host "Created: release\com.thomast.discordmixer.streamDeckPlugin" -ForegroundColor Cyan
 Write-Host "Created: release\StreamDeck-DiscordVolumeMixer-v2.0.3-Windows-x64.zip" -ForegroundColor Cyan
 
