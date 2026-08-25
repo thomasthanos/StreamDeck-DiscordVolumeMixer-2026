@@ -1,26 +1,33 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Build tested on MSVC 2016 x64
+# Build tested on MSVC 2022 x64
 
-project(streamdeck-discordmixer LANGUAGES CXX)
+project(streamdeck-discordmixer VERSION 2.0.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_IN_STREAMDECK_PLUGINS_DIR "Whether to build to the 'bin' directory or to the stream deck plugins directory." OFF)
+set(PLUGIN_OUTPUT_DIR "" CACHE PATH "Optional explicit output directory for the .sdPlugin bundle")
 
 # ===========================================
 # Target setup
 # ===========================================
 set(target streamdeck-discordmixer)
 
-# Qt setup
-find_package(Qt6 COMPONENTS Core WebSockets Network Gui REQUIRED CONFIG)
+# Qt setup (Qt 6.5 is the oldest supported LTS line.)
+find_package(Qt6 6.5 COMPONENTS Core WebSockets Network Gui REQUIRED CONFIG)
 set(CMAKE_AUTOMOC ON)
+
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif ()
 
 if (BUILD_IN_STREAMDECK_PLUGINS_DIR)
     file(TO_CMAKE_PATH "$ENV{APPDATA}" appdata_path)
     set(target_directory "${appdata_path}/Elgato/StreamDeck/Plugins/cz.danol.discordmixer.sdPlugin")
+elseif (PLUGIN_OUTPUT_DIR)
+    set(target_directory "${PLUGIN_OUTPUT_DIR}")
 else ()
     set(target_directory "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/cz.danol.discordmixer.sdPlugin")
 endif ()
@@ -29,6 +36,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${target_directory}/bin")
 qt_add_executable(${target})
 target_link_libraries(${target} PRIVATE Qt6::WebSockets Qt6::Network Qt6::Gui)
 target_compile_definitions(${target} PRIVATE QT_DISABLE_DEPRECATED_BEFORE=0x060200)
+if (MSVC)
+    target_compile_options(${target} PRIVATE /W4 /permissive- /EHsc)
+else ()
+    target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
+endif ()
 
 # ===========================================
 # Sources
@@ -56,7 +68,10 @@ target_include_directories(${target} PRIVATE "${PROJECT_SOURCE_DIR}/deps/qtdisco
 # ===========================================
 
 # Copy files from dist
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/dist/" DESTINATION ${target_directory})
+# dist/bin contains the upstream 2023 runtime bundle (including obsolete OpenSSL
+# 1.1 DLLs). The executable and current runtime are produced/deployed below.
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/dist/" DESTINATION ${target_directory}
+        PATTERN "bin" EXCLUDE)
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/deps/qtstreamdeck2/dist/" DESTINATION ${target_directory})
 
 # Run windeployqt
@@ -64,6 +79,4 @@ get_target_property(QMAKE_FILEPATH Qt6::qmake IMPORTED_LOCATION)
 
 install(CODE "set(target_file \"$<TARGET_FILE:${target}>\")")
 install(CODE "set(QMAKE_FILEPATH \"${QMAKE_FILEPATH}\")")
-install(CODE "set(PROJECT_SOURCE_DIR \"${PROJECT_BASE_DIR}\")")
-install(CODE "set(CMAKE_BINARY_DIR \"${CMAKE_BASE_DIR}\")")
 install(SCRIPT "${PROJECT_SOURCE_DIR}/deploy.cmake")

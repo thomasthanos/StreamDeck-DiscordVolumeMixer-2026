@@ -35,14 +35,14 @@
           "ShowTitle": true,
           "TitleAlignment": "middle",
           "FontFamily": "Verdana",
-          "FontSize": "8"
+          "FontSize": 8
         },
         {
           "Image": "icons/noicon",
           "ShowTitle": true,
           "TitleAlignment": "middle",
           "FontFamily": "Verdana",
-          "FontSize": "8"
+          "FontSize": 8
         }
       ],
       "Controllers": [
@@ -104,14 +104,14 @@
           "ShowTitle": true,
           "TitleAlignment": "top",
           "FontFamily": "Verdana",
-          "FontSize": "8"
+          "FontSize": 8
         },
         {
           "Image": "icons/noicon",
           "ShowTitle": true,
           "TitleAlignment": "top",
           "FontFamily": "Verdana",
-          "FontSize": "8"
+          "FontSize": 8
         }
       ],
       "UserTitleEnabled": false,
@@ -128,14 +128,14 @@
           "ShowTitle": true,
           "TitleAlignment": "top",
           "FontFamily": "Verdana",
-          "FontSize": "8"
+          "FontSize": 8
         },
         {
           "Image": "icons/noicon",
           "ShowTitle": true,
           "TitleAlignment": "top",
           "FontFamily": "Verdana",
-          "FontSize": "8"
+          "FontSize": 8
         }
       ],
       "UserTitleEnabled": false,
@@ -179,40 +179,41 @@
     }
   ],
   "SDKVersion": 2,
-  "Author": "Danol",
-  "CodePathWin": "bin/streamdeck-discordmixer.exe",
+  "Author": "Danol (Maintained by ThomasThanos)",
+  "CodePath": "bin/streamdeck-discordmixer.exe",
+  "UUID": "cz.danol.discordmixer",
   "Description": "Provides a mixer for Discord voice chat that allows adjusting volume for individual users.\nThis application uses Icons8 icons (https://icons8.com)",
   "Category": "Discord Volume Mixer",
   "CategoryIcon": "icons/icons8_discord_new_72px",
   "Name": "Discord Volume Mixer",
   "Icon": "icons/icons8_discord_new_72px",
-  "URL": "https://github.com/CZDanol/StreamDeck-DiscordVolumeMixer2",
-  "Version": "2.0.1.9",
+  "URL": "https://github.com/thomasthanos/StreamDeck-DiscordVolumeMixer-2026",
+  "Version": "2.0.3.0",
   "Profiles": [
     {
       "Name": "Discord Volume Mixer",
       "DeviceType": 0,
-      "ReadOnly": false
+      "Readonly": false
     },
     {
       "Name": "Discord Volume Mixer",
       "DeviceType": 3,
-      "ReadOnly": false
+      "Readonly": false
     },
     {
       "Name": "Discord Volume Mixer XL",
       "DeviceType": 2,
-      "ReadOnly": false
+      "Readonly": false
     },
     {
       "Name": "Discord Volume Mixer Mini",
       "DeviceType": 1,
-      "ReadOnly": false
+      "Readonly": false
     },
     {
       "Name": "Discord Volume Mixer+",
       "DeviceType": 7,
-      "ReadOnly": false
+      "Readonly": false
     }
   ],
   "OS": [
@@ -222,6 +223,6 @@
     }
   ],
   "Software": {
-    "MinimumVersion": "6.1"
+    "MinimumVersion": "6.4"
   }
 }

@@ -41,6 +41,7 @@ public:
 public:
 	bool isDeafened = false;
 	bool isMicrophoneMuted = false;
+	bool isDiscordConnecting = false;
 
 signals:
 	/// Updates text & states of all user related buttons
@@ -48,6 +49,7 @@ signals:
 
 private:
 	void updateCurrentVoiceChannel(const QString &newVoiceChannel);
+	void scheduleDiscordReconnect();
 
 private slots:
 	void onInitialized();
@@ -57,5 +59,8 @@ private slots:
 private:
 	QTimer discordConnectTimeoutTimer_;
 	QTimer discordReconnectTimer_;
+	int discordReconnectFailures_ = 0;
+	QString connectedClientID_;
+	QString connectedClientSecret_;
 
 };

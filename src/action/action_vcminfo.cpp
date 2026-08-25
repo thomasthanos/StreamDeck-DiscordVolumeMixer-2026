@@ -1,6 +1,8 @@
 #include "action_vcminfo.h"
 
 #include <QPainter>
+#include <QPainterPath>
+#include <QPen>
 
 #include <qtstreamdeck2/qstreamdeckpropertyinspectorbuilder.h>
 
@@ -32,7 +34,9 @@ void Action_VCMInfo::update_button() {
 
 	{
 		QString newTitle;
-		if(!plugin()->discord.isConnected())
+		if(plugin()->isDiscordConnecting)
+			newTitle = "LOADING...";
+		else if(!plugin()->discord.isConnected())
 			newTitle = plugin()->discord.connectionError();
 		else if(vcmp)
 			newTitle = QStringLiteral("%1\n%3\n%2").arg(vcm.nick, volumeStr, isSpeaking ? ">>SPEAKING<<" : vcm.isMuted ? "##" : "");
@@ -52,19 +56,36 @@ void Action_VCMInfo::update_button() {
 		const QImage avatar = plugin()->discord.getUserAvatar(userID_, vcm.avatarID);
 		hasAvatar_ = !avatar.isNull();
 
+		// State 0: Normal / Idle
 		QImage img(72, 72, QImage::Format_ARGB32);
-		QPainter p(&img);
 		img.fill(Qt::transparent);
-		if(hasAvatar_) {
-			p.setOpacity(0.5);
-			p.drawImage(0, 0, avatar.scaled(72, 72, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-			p.setOpacity(1);
+		{
+			QPainter p(&img);
+			p.setRenderHint(QPainter::Antialiasing);
+			p.setRenderHint(QPainter::SmoothPixmapTransform);
+			if(hasAvatar_) {
+				p.setOpacity(0.55);
+				p.drawImage(QRect(0, 0, 72, 72), avatar.scaled(72, 72, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+				p.setOpacity(1.0);
+			}
 		}
 		setImage(img, 0);
 
-		static const QImage speakingDeco("icons/speaking_deco.png");
-		p.drawImage(0, 0, speakingDeco);
-		setImage(img, 1);
+		// State 1: Speaking (with crisp glowing Discord green border)
+		QImage imgSpeaking = img;
+		{
+			QPainter p(&imgSpeaking);
+			p.setRenderHint(QPainter::Antialiasing);
+			static const QImage speakingDeco("icons/speaking_deco.png");
+			if(!speakingDeco.isNull())
+				p.drawImage(0, 0, speakingDeco);
+			else {
+				QPen pen(QColor(0x23, 0xa5, 0x5a), 3);
+				p.setPen(pen);
+				p.drawRoundedRect(QRect(2, 2, 68, 68), 8, 8);
+			}
+		}
+		setImage(imgSpeaking, 1);
 	}
 
 	const int newState = isSpeaking ? 1 : 0;
@@ -84,7 +105,9 @@ void Action_VCMInfo::update_encoder() {
 
 	{
 		QString newTitle;
-		if(!plugin()->discord.isConnected())
+		if(plugin()->isDiscordConnecting)
+			newTitle = "LOADING...";
+		else if(!plugin()->discord.isConnected())
 			newTitle = plugin()->discord.connectionError();
 		else if(vcmp) {
 			if(setting("showPaging").toBool())
@@ -110,21 +133,43 @@ void Action_VCMInfo::update_encoder() {
 	}
 
 	const QString newUserId = vcm.userID;
-	if(userID_ != newUserId || !hasAvatar_) {
+	if(userID_ != newUserId || !hasAvatar_ || isSpeaking) {
 		userID_ = newUserId;
 
 		const QImage avatar = plugin()->discord.getUserAvatar(userID_, vcm.avatarID);
 		hasAvatar_ = !avatar.isNull();
 
 		QImage img(48, 48, QImage::Format_ARGB32);
-		QPainter p(&img);
 		img.fill(Qt::transparent);
-		if(hasAvatar_) {
-			p.drawImage(0, 0, avatar.scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-		}
-		else if(vcmp) {
-			static const QImage avatarPlaceholder = QImage("icons/icons8_user_72px.png").scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-			p.drawImage(0, 0, avatarPlaceholder);
+		{
+			QPainter p(&img);
+			p.setRenderHint(QPainter::Antialiasing);
+			p.setRenderHint(QPainter::SmoothPixmapTransform);
+
+			QPainterPath clipPath;
+			clipPath.addEllipse(2, 2, 44, 44);
+			p.setClipPath(clipPath);
+
+			if(hasAvatar_) {
+				p.drawImage(QRect(2, 2, 44, 44), avatar.scaled(44, 44, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
+			}
+			else if(vcmp) {
+				static const QImage avatarPlaceholder = QImage("icons/icons8_user_72px.png").scaled(44, 44, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+				p.drawImage(QRect(2, 2, 44, 44), avatarPlaceholder);
+			}
+
+			p.setClipping(false);
+
+			if(isSpeaking) {
+				QPen pen(QColor(0x23, 0xa5, 0x5a), 3); // Discord Green
+				p.setPen(pen);
+				p.drawEllipse(2, 2, 44, 44);
+			}
+			else if(vcm.isMuted) {
+				QPen pen(QColor(0xed, 0x42, 0x45), 2); // Discord Red
+				p.setPen(pen);
+				p.drawEllipse(2, 2, 44, 44);
+			}
 		}
 
 		feedbackData.insert("icon", QStreamDeckPlugin::encodeImage(img));
@@ -178,6 +223,9 @@ void Action_VCMInfo::onRotated(int delta) {
 }
 
 void Action_VCMInfo::executeAction(Action_VCMInfo::Action a) {
+	if(!plugin()->discord.isConnected())
+		return;
+
 	switch(a) {
 
 		case Action::muteUnmute: {
@@ -198,11 +246,15 @@ void Action_VCMInfo::executeAction(Action_VCMInfo::Action a) {
 		}
 
 		case Action::nextUser:
+			if(plugin()->voiceChannelMembers.isEmpty())
+				return;
 			device()->voiceChannelMemberIndexOffset = (device()->voiceChannelMemberIndexOffset + 1) % plugin()->voiceChannelMembers.size();
 			emit plugin()->buttonsUpdateRequested();
 			break;
 
 		case Action::previousUser:
+			if(plugin()->voiceChannelMembers.isEmpty())
+				return;
 			device()->voiceChannelMemberIndexOffset = (device()->voiceChannelMemberIndexOffset + plugin()->voiceChannelMembers.size() - 1) % plugin()->voiceChannelMembers.size();
 			emit plugin()->buttonsUpdateRequested();
 			break;

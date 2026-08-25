@@ -1,0 +1,4 @@
+bin/log.txt
+bin/clog.txt
+discordOauth.json
+**/discordOauth.json

@@ -1,5 +1,6 @@
 #include "dvmplugin.h"
 
+#include <QFile>
 #include "dvmdevice.h"
 
 #include "action/action_openmixer.h"
@@ -9,6 +10,8 @@
 #include "action/action_back.h"
 #include "action/action_deafen.h"
 #include "action/action_microphone.h"
+
+#include <cmath>
 
 DVMPlugin::DVMPlugin() {
 	registerActionType<Action_OpenMixer>("cz.danol.discordmixer.openmixer");
@@ -26,13 +29,18 @@ DVMPlugin::DVMPlugin() {
 
 	connect(&discord, &QDiscord::messageReceived, this, &DVMPlugin::onDiscordMessageReceived);
 	connect(&discord, &QDiscord::avatarReady, this, &DVMPlugin::buttonsUpdateRequested);
+	connect(&discord, &QDiscord::connected, this, [this] {
+		discordReconnectFailures_ = 0;
+		discordReconnectTimer_.stop();
+	});
 	connect(&discord, &QDiscord::disconnected, this, [this] {
+		isDiscordConnecting = false;
 		currentVoiceChannelID.clear();
 		voiceChannelMembers.clear();
 		speakingVoiceChannelMembers.clear();
 		voiceChannelMemberIxOffset = 0;
 
-		discordReconnectTimer_.start();
+		scheduleDiscordReconnect();
 
 		emit buttonsUpdateRequested();
 	});
@@ -41,8 +49,26 @@ DVMPlugin::DVMPlugin() {
 	discordConnectTimeoutTimer_.setInterval(2000);
 
 	discordReconnectTimer_.setInterval(2500);
+	discordReconnectTimer_.setSingleShot(true);
 	discordReconnectTimer_.callOnTimeout(this, &DVMPlugin::connectToDiscord);
 	discordReconnectTimer_.start();
+
+	connect(this, &DVMPlugin::globalSettingsChanged, this, [this] {
+		QTimer::singleShot(0, this, [this] {
+			const QString clientID = globalSetting("client_id").toString().trimmed();
+			const QString clientSecret = globalSetting("client_secret").toString().trimmed();
+			if(discord.isConnected() && (clientID != connectedClientID_ || clientSecret != connectedClientSecret_)) {
+				// Credentials changed — purge stale OAuth token cache
+				QFile::remove("discordOauth.json");
+				qDebug() << "Credentials changed, purged OAuth token cache";
+				discord.disconnect();
+			}
+			if(!discord.isConnected()) {
+				discordReconnectTimer_.stop();
+				connectToDiscord();
+			}
+		});
+	});
 }
 
 DVMPlugin::~DVMPlugin() {
@@ -50,10 +76,19 @@ DVMPlugin::~DVMPlugin() {
 }
 
 void DVMPlugin::connectToDiscord() {
-	if(discord.isConnected())
+	if(discord.isConnected() || discord.isProcessing())
 		return;
 
-	if(discord.connect(globalSetting("client_id").toString(), globalSetting("client_secret").toString())) {
+	const QString clientID = globalSetting("client_id").toString().trimmed();
+	const QString clientSecret = globalSetting("client_secret").toString().trimmed();
+	isDiscordConnecting = true;
+	emit buttonsUpdateRequested();
+	const bool connected = discord.connect(clientID, clientSecret, QStringLiteral("http://localhost:1337/callback"));
+	isDiscordConnecting = false;
+
+	if(connected) {
+		connectedClientID_ = clientID;
+		connectedClientSecret_ = clientSecret;
 		// Subscribe to voice channel select event
 		discord.sendCommand(+QDiscord::CommandType::subscribe, {}, QJsonObject{
 			{"evt", "VOICE_CHANNEL_SELECT"},
@@ -70,14 +105,24 @@ void DVMPlugin::connectToDiscord() {
 
 		updateChannelMembersData();
 		discordReconnectTimer_.stop();
+		emit buttonsUpdateRequested();
 	}
 	else {
 		emit buttonsUpdateRequested();
-		discordReconnectTimer_.start();
+		scheduleDiscordReconnect();
 	}
 }
 
+void DVMPlugin::scheduleDiscordReconnect() {
+	const int exponent = qMin(discordReconnectFailures_++, 4);
+	const int delayMs = qMin(15000, 1500 * (1 << exponent));
+	discordReconnectTimer_.start(delayMs);
+}
+
 void DVMPlugin::updateChannelMembersData() {
+	if(!discord.isConnected())
+		return;
+
 	QDiscordReply *r = discord.sendCommand(+QDiscord::CommandType::getSelectedVoiceChannel);
 	connect(r, &QDiscordReply::success, this, [this](const QDiscordMessage &msg) {
 		updateCurrentVoiceChannel(msg.data["id"].toString());
@@ -113,10 +158,12 @@ void DVMPlugin::updateSelfVoiceState(const QDiscordMessage &msg) {
 }
 
 void DVMPlugin::adjustVoiceChannelMemberVolume(VoiceChannelMember &vcm, float stepSize, int numSteps) {
-	const float step = globalSetting("voiceChannelVolumeButtonStep").toInt();
+	if(!std::isfinite(stepSize) || stepSize <= 0 || numSteps == 0 || !discord.isConnected())
+		return;
+
 	float newVolume = vcm.volume + stepSize * numSteps;
-	newVolume = qBound(QDiscord::minVoiceVolume, newVolume, QDiscord::maxVoiceVolume);
 	newVolume = qRound(newVolume / stepSize) * stepSize;
+	newVolume = qBound(QDiscord::minVoiceVolume, newVolume, QDiscord::maxVoiceVolume);
 
 	if(newVolume != vcm.volume || vcm.isMuted) {
 		vcm.volume = newVolume;
@@ -135,6 +182,8 @@ void DVMPlugin::updateCurrentVoiceChannel(const QString &newVoiceChannel) {
 	// If the channel changed, update event subscribtions
 	if(newVoiceChannel == currentVoiceChannelID)
 		return;
+
+	speakingVoiceChannelMembers.clear();
 
 	static const QStringList events{
 		"VOICE_STATE_UPDATE", "VOICE_STATE_CREATE", "VOICE_STATE_DELETE", "SPEAKING_START", "SPEAKING_STOP"
@@ -181,7 +230,7 @@ void DVMPlugin::onDiscordMessageReceived(const QDiscordMessage &msg) {
 			if(m.userID == discord.userID())
 				updateSelfVoiceState(msg);
 
-			else if(voiceChannelMembers.contains(m.userID))
+			else
 				voiceChannelMembers.insert(m.userID, m);
 
 			break;
@@ -190,6 +239,7 @@ void DVMPlugin::onDiscordMessageReceived(const QDiscordMessage &msg) {
 		case ET::voiceStateDelete: {
 			const auto voiceData = VoiceChannelMember::fromJson(msg.data);
 			voiceChannelMembers.remove(voiceData.userID);
+			speakingVoiceChannelMembers.remove(voiceData.userID);
 			if(voiceChannelMemberIxOffset >= voiceChannelMembers.size())
 				voiceChannelMemberIxOffset = 0;
 
@@ -238,6 +288,7 @@ void DVMPlugin::onStreamDeckEventReceived(const QStreamDeckEvent &e) {
 	// Try connecting to discord whenever any button is pressed
 	if(!discord.isConnected() && !discordConnectTimeoutTimer_.isActive() && (e.eventType == ET::touchTap || e.eventType == ET::keyDown || e.eventType == ET::dialDown || e.eventType == ET::dialUp || e.eventType == ET::dialRotate)) {
 		discordConnectTimeoutTimer_.start();
+		discordReconnectTimer_.stop();
 		connectToDiscord();
 	}
 }
