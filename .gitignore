@@ -64,3 +64,7 @@ $RECYCLE.BIN/
 .AppleDouble
 .LSOverride
 ._*
+
+# Tools & Helper Scripts
+/tools/
+tools/
