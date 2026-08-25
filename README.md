@@ -12,6 +12,8 @@
 
 <br>
 
+<img src=".github/assets/spec-discord.svg" alt="At a glance">
+
 </div>
 
 <img src=".github/assets/divider.svg" width="100%" alt="">
@@ -38,15 +40,26 @@ Managing voice volume in busy Discord channels usually means Alt-Tabbing or open
 
 ## <img src=".github/assets/icon-settings.svg" width="22" align="middle"> Features
 
-| Feature | Keypad (Standard, Mini, XL, Mobile) | Rotary Encoders (Stream Deck +) |
+### Hardware Controls & Feedback
+
+- **Individual User Volumes**: Smooth adjustments from 0% up to 200% with configurable step sizes.
+- **One-Click Mute Toggle**: Instant mute/unmute per user without opening Discord menus.
+- **Live Speaking Detection**: Dynamic Discord-green border rings (`#23A55A`) and `>>SPEAKING<<` indicators when someone talks.
+- **Mute & Deafen States**: Distinctive red badges (`#ED4245`) for muted channel members.
+- **Self Voice Management**: Dedicated hotkeys to toggle your own microphone mute and deafen state.
+- **Multi-Page Voice Channels**: Next and previous page buttons to easily navigate large channels.
+
+### Controller Compatibility
+
+| Capability | Keypad Keys (Standard, Mini, XL, Mobile) | Rotary Dials (Stream Deck +) |
 | :--- | :--- | :--- |
-| **User Avatar Display** | 55% blended avatar background | High-resolution circular antialiased avatar |
-| **Volume Adjustment** | Dedicated Volume Up / Down buttons (+ configurable step) | Smooth rotary dial knob with step control |
-| **Mute Toggle** | Key press toggles individual user mute | Dial push / LCD tap action (configurable) |
-| **Speaking Feedback** | Dynamic green overlay (`>>SPEAKING<<`) | Dynamic glowing green ring on LCD icon |
-| **Muted Feedback** | Clear `MUTED` status tag | Red ring outline on LCD icon + `MUTED` value |
-| **Channel Navigation** | Multi-page next/previous navigation buttons | Dial push / tap user paging cycling |
-| **Self Audio Controls** | Toggle Microphone Mute & Deafen | Toggle Microphone Mute & Deafen |
+| **Avatar Display** | High-contrast 55% blended avatar | High-resolution circular antialiased avatar |
+| **Volume Control** | Volume Up / Down buttons (+ custom step) | Physical rotary encoder knob |
+| **User Mute Toggle** | Key press toggles user mute | Dial push or touchscreen tap (configurable) |
+| **Speaking Ring** | Vibrant green border overlay | Glowing green ring on LCD icon |
+| **Muted Tag** | Clear `MUTED` status tag | Red outline on LCD icon + `MUTED` value |
+| **Paging & Cycling** | Dedicated Next / Previous page keys | Push / Tap to cycle through members |
+| **Self Mute / Deafen** | Dedicated self mic / audio toggle buttons | Dedicated self mic / audio toggle buttons |
 
 <img src=".github/assets/divider.svg" width="100%" alt="">
 

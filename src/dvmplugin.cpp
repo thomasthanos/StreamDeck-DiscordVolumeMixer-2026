@@ -1,6 +1,9 @@
 #include "dvmplugin.h"
 
+#include <QCoreApplication>
+#include <QDir>
 #include <QFile>
+#include <QSettings>
 #include "dvmdevice.h"
 
 #include "action/action_openmixer.h"
@@ -58,8 +61,12 @@ DVMPlugin::DVMPlugin() {
 			const QString clientID = globalSetting("client_id").toString().trimmed();
 			const QString clientSecret = globalSetting("client_secret").toString().trimmed();
 			if(discord.isConnected() && (clientID != connectedClientID_ || clientSecret != connectedClientSecret_)) {
-				// Credentials changed — purge stale OAuth token cache
-				QFile::remove("discordOauth.json");
+				// Credentials changed — purge stale OAuth token cache from file and registry
+				const QString appDir = QCoreApplication::applicationDirPath();
+				const QString oauthPath = !appDir.isEmpty() ? QDir::cleanPath(QDir(appDir).filePath("../discordOauth.json")) : "discordOauth.json";
+				QFile::remove(oauthPath);
+				QSettings regSettings(QSettings::UserScope, "Elgato Stream Deck Plugin", "cz.danol.discordmixer");
+				regSettings.remove("discordOauth");
 				qDebug() << "Credentials changed, purged OAuth token cache";
 				discord.disconnect();
 			}
