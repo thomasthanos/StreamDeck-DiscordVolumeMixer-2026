@@ -3,6 +3,10 @@
 #include <qtstreamdeck2/qstreamdeckplugin.h>
 #include <qtdiscordipc/qdiscord.h>
 #include <QSettings>
+#include <QNetworkAccessManager>
+#include <QPixmap>
+#include <QHash>
+#include <QSet>
 
 #include "declares.h"
 #include "voicechannelmember.h"
@@ -27,6 +31,9 @@ public:
 	void updateSelfVoiceState(const QDiscordMessage &msg);
 
 	void adjustVoiceChannelMemberVolume(VoiceChannelMember &vcm, float stepSize, int numSteps);
+
+	/// Returns a cached avatar, or starts a non-blocking CDN download and returns null.
+	QPixmap getUserAvatar(const QString &userId, const QString &avatarHash);
 
 public:
 	QDiscord discord;
@@ -62,5 +69,11 @@ private:
 	int discordReconnectFailures_ = 0;
 	QString connectedClientID_;
 	QString connectedClientSecret_;
+	QString rejectedClientID_;
+
+	QNetworkAccessManager avatarNetworkManager_;
+	QHash<QString, QPixmap> avatarCache_;
+	QSet<QString> avatarDownloadsInFlight_;
+	QHash<QString, qint64> avatarRetryAfter_;
 
 };

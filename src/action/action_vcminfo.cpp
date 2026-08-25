@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPen>
+#include <QLinearGradient>
 
 #include <qtstreamdeck2/qstreamdeckpropertyinspectorbuilder.h>
 
@@ -41,71 +42,196 @@ static QString formatButtonNick(const QString &rawNick) {
 	return nick.left(7) + QString::fromUtf8("…");
 }
 
+namespace {
+
+constexpr int buttonImageSize = 144;
+
+void drawAvatarPlaceholder(QPainter &painter, const QRectF &avatarRect) {
+	static const QImage placeholder("icons/icons8_user_72px.png");
+	if(!placeholder.isNull()) {
+		const QRectF target = avatarRect.adjusted(12, 12, -12, -12);
+		painter.setOpacity(0.72);
+		painter.drawImage(target, placeholder);
+		painter.setOpacity(1.0);
+		return;
+	}
+
+	// Asset-independent fallback silhouette.
+	painter.setBrush(QColor("#9AA0A6"));
+	painter.setPen(Qt::NoPen);
+	const QPointF center = avatarRect.center();
+	painter.drawEllipse(QPointF(center.x(), center.y() - 12), 11, 11);
+	QPainterPath shoulders;
+	shoulders.addEllipse(QRectF(center.x() - 24, center.y() + 3, 48, 32));
+	painter.drawPath(shoulders);
+}
+
+void drawMutedBadge(QPainter &painter) {
+	const QRectF badgeRect(93, 59, 30, 30);
+	painter.setPen(QPen(QColor("#0A0B0C"), 3));
+	painter.setBrush(QColor("#ED4245"));
+	painter.drawEllipse(badgeRect);
+
+	// Small microphone plus slash; kept deliberately bold for 72 px devices.
+	painter.setBrush(Qt::NoBrush);
+	painter.setPen(QPen(Qt::white, 2.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+	painter.drawRoundedRect(QRectF(105, 65, 6, 11), 3, 3);
+	painter.drawArc(QRectF(102, 68, 12, 12), 195 * 16, 150 * 16);
+	painter.drawLine(QPointF(108, 79), QPointF(108, 82));
+	painter.drawLine(QPointF(103, 82), QPointF(113, 82));
+	painter.setPen(QPen(Qt::white, 3, Qt::SolidLine, Qt::RoundCap));
+	painter.drawLine(QPointF(100, 64), QPointF(116, 82));
+}
+
+QImage renderButtonTile(const VoiceChannelMember *member, const QImage &avatar,
+						bool isSpeaking, const QString &message) {
+	QImage tile(buttonImageSize, buttonImageSize, QImage::Format_ARGB32_Premultiplied);
+	tile.fill(Qt::transparent);
+
+	QPainter painter(&tile);
+	painter.setRenderHint(QPainter::Antialiasing);
+	painter.setRenderHint(QPainter::TextAntialiasing);
+	painter.setRenderHint(QPainter::SmoothPixmapTransform);
+
+	QLinearGradient background(0, 0, 0, buttonImageSize);
+	background.setColorAt(0.0, QColor("#0A0B0C"));
+	background.setColorAt(1.0, QColor("#18191C"));
+	painter.fillRect(tile.rect(), background);
+
+	if(!member) {
+		if(!message.isEmpty()) {
+			QFont messageFont(QStringLiteral("Segoe UI"));
+			messageFont.setPixelSize(14);
+			messageFont.setWeight(QFont::DemiBold);
+			painter.setFont(messageFont);
+			painter.setPen(QColor("#DCDDDE"));
+			painter.drawText(QRectF(12, 12, 120, 120),
+							 Qt::AlignCenter | Qt::TextWordWrap, message);
+		}
+		return tile;
+	}
+
+	const QRectF avatarRect(36, 8, 72, 72);
+	const bool isMuted = member->isMuted;
+	const QColor ringColor = isMuted ? QColor("#ED4245")
+									 : (isSpeaking ? QColor("#57F287") : QColor("#4F545C"));
+
+	if(isMuted || isSpeaking) {
+		QColor glow = ringColor;
+		glow.setAlpha(28);
+		painter.setBrush(Qt::NoBrush);
+		painter.setPen(QPen(glow, 16, Qt::SolidLine, Qt::RoundCap));
+		painter.drawEllipse(avatarRect);
+		glow.setAlpha(58);
+		painter.setPen(QPen(glow, 10, Qt::SolidLine, Qt::RoundCap));
+		painter.drawEllipse(avatarRect);
+		glow.setAlpha(105);
+		painter.setPen(QPen(glow, 6, Qt::SolidLine, Qt::RoundCap));
+		painter.drawEllipse(avatarRect);
+	}
+
+	painter.setPen(Qt::NoPen);
+	painter.setBrush(QColor("#24262B"));
+	painter.drawEllipse(avatarRect);
+
+	painter.save();
+	QPainterPath avatarClip;
+	avatarClip.addEllipse(avatarRect);
+	painter.setClipPath(avatarClip);
+	if(!avatar.isNull()) {
+		const qreal sourceSide = qMin(avatar.width(), avatar.height());
+		const QRectF sourceRect((avatar.width() - sourceSide) / 2.0,
+								(avatar.height() - sourceSide) / 2.0,
+								sourceSide, sourceSide);
+		painter.drawImage(avatarRect, avatar, sourceRect);
+	}
+	else {
+		drawAvatarPlaceholder(painter, avatarRect);
+	}
+	painter.restore();
+
+	painter.setBrush(Qt::NoBrush);
+	painter.setPen(QPen(ringColor, isMuted || isSpeaking ? 4.5 : 3.0,
+						Qt::SolidLine, Qt::RoundCap));
+	painter.drawEllipse(avatarRect);
+
+	if(isMuted)
+		drawMutedBadge(painter);
+
+	QFont usernameFont(QStringLiteral("Segoe UI"));
+	usernameFont.setPixelSize(16);
+	usernameFont.setWeight(QFont::Bold);
+	painter.setFont(usernameFont);
+	painter.setPen(Qt::white);
+	const QString username = formatButtonNick(member->nick);
+	painter.drawText(QRectF(6, 85, 132, 25), Qt::AlignCenter | Qt::TextSingleLine, username);
+
+	QString status;
+	QColor statusColor("#B9BBBE");
+	if(isMuted) {
+		status = QStringLiteral("MUTED");
+		statusColor = QColor("#ED4245");
+	}
+	else if(isSpeaking) {
+		status = QStringLiteral("SPEAKING");
+		statusColor = QColor("#57F287");
+	}
+	else {
+		status = QStringLiteral("%1%").arg(qRound(member->volume));
+	}
+
+	QFont statusFont(QStringLiteral("Segoe UI"));
+	statusFont.setPixelSize(13);
+	statusFont.setWeight(QFont::DemiBold);
+	painter.setFont(statusFont);
+	painter.setPen(statusColor);
+	painter.drawText(QRectF(6, 111, 132, 22), Qt::AlignCenter | Qt::TextSingleLine, status);
+
+	return tile;
+}
+
+} // namespace
+
 void Action_VCMInfo::update_button() {
 	const auto vcmp = voiceChannelMember();
 	const VoiceChannelMember &vcm = vcmp ? *vcmp.mem : VoiceChannelMember::null;
 
 	const bool isSpeaking = vcmp && plugin()->speakingVoiceChannelMembers.contains(vcm.userID);
 
-	const QString volumeStr = vcm.isMuted ? "MUTED" : QStringLiteral("%1 %").arg(QString::number(vcm.volume));
-
-	{
-		QString newTitle;
-		if(plugin()->isDiscordConnecting)
-			newTitle = "LOADING...";
-		else if(!plugin()->discord.isConnected())
-			newTitle = plugin()->discord.connectionError();
-		else if(vcmp) {
-			const QString nickStr = formatButtonNick(vcm.nick);
-			const QString statusStr = isSpeaking ? "SPEAKING" : (vcm.isMuted ? "MUTED" : "");
-			newTitle = QStringLiteral("%1\n%3\n%2").arg(nickStr, volumeStr, statusStr);
-		}
-		else if(plugin()->voiceChannelMembers.isEmpty() && !plugin()->globalSetting("hideNobodyInVoiceChatText").toBool())
-			newTitle = QString("NOBODY\nIN\nVOICE CHAT");
-
-		if(title_ != newTitle) {
-			title_ = newTitle;
-			setTitle(newTitle);
-		}
+	QString message;
+	if(plugin()->isDiscordConnecting)
+		message = QStringLiteral("LOADING…");
+	else if(!plugin()->discord.isConnected()) {
+		message = plugin()->discord.connectionError().trimmed();
+		if(message.isEmpty())
+			message = QStringLiteral("DISCORD OFFLINE");
 	}
+	else if(!vcmp && plugin()->voiceChannelMembers.isEmpty()
+			&& !plugin()->globalSetting("hideNobodyInVoiceChatText").toBool())
+		message = QStringLiteral("NOBODY IN VOICE CHAT");
 
-	const QString newUserId = vcm.userID;
-	if(userID_ != newUserId || !hasAvatar_) {
-		userID_ = newUserId;
+	const QImage avatar = vcmp
+			? plugin()->getUserAvatar(vcm.userID, vcm.avatarID).toImage()
+			: QImage{};
+	const bool hasAvatar = !avatar.isNull();
+	const QString renderKey = QStringLiteral("%1|%2|%3|%4|%5|%6|%7|%8|%9")
+			.arg(message, vcm.userID, vcm.avatarID, vcm.nick,
+				 QString::number(vcm.volume, 'f', 1),
+				 QString::number(vcm.isMuted), QString::number(isSpeaking),
+				 QString::number(hasAvatar), QString::number(bool(vcmp)));
 
-		const QImage avatar = plugin()->discord.getUserAvatar(userID_, vcm.avatarID);
-		hasAvatar_ = !avatar.isNull();
-
-		// State 0: Normal / Idle
-		QImage img(72, 72, QImage::Format_ARGB32);
-		img.fill(Qt::transparent);
-		{
-			QPainter p(&img);
-			p.setRenderHint(QPainter::Antialiasing);
-			p.setRenderHint(QPainter::SmoothPixmapTransform);
-			if(hasAvatar_) {
-				p.setOpacity(0.55);
-				p.drawImage(QRect(0, 0, 72, 72), avatar.scaled(72, 72, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
-				p.setOpacity(1.0);
-			}
+	if(buttonRenderKey_ != renderKey) {
+		buttonRenderKey_ = renderKey;
+		if(title_ != QString()) {
+			title_.clear();
+			setTitle(QString());
 		}
-		setImage(img, 0);
 
-		// State 1: Speaking (with crisp glowing Discord green border)
-		QImage imgSpeaking = img;
-		{
-			QPainter p(&imgSpeaking);
-			p.setRenderHint(QPainter::Antialiasing);
-			static const QImage speakingDeco("icons/speaking_deco.png");
-			if(!speakingDeco.isNull())
-				p.drawImage(0, 0, speakingDeco);
-			else {
-				QPen pen(QColor(0x23, 0xa5, 0x5a), 3);
-				p.setPen(pen);
-				p.drawRoundedRect(QRect(2, 2, 68, 68), 8, 8);
-			}
-		}
-		setImage(imgSpeaking, 1);
+		const QImage tile = renderButtonTile(vcmp ? vcmp.mem : nullptr, avatar,
+										 isSpeaking, message);
+		const QString encodedTile = QStreamDeckPlugin::encodeImage(tile);
+		setImage(encodedTile, 0);
+		setImage(encodedTile, 1);
 	}
 
 	const int newState = isSpeaking ? 1 : 0;
@@ -156,7 +282,7 @@ void Action_VCMInfo::update_encoder() {
 	if(userID_ != newUserId || !hasAvatar_ || isSpeaking) {
 		userID_ = newUserId;
 
-		const QImage avatar = plugin()->discord.getUserAvatar(userID_, vcm.avatarID);
+		const QImage avatar = plugin()->getUserAvatar(userID_, vcm.avatarID).toImage();
 		hasAvatar_ = !avatar.isNull();
 
 		QImage img(48, 48, QImage::Format_ARGB32);

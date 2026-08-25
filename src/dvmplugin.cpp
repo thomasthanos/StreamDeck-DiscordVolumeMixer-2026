@@ -4,6 +4,10 @@
 #include <QDir>
 #include <QFile>
 #include <QSettings>
+#include <QDateTime>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QUrl>
 #include "dvmdevice.h"
 
 #include "action/action_openmixer.h"
@@ -31,7 +35,6 @@ DVMPlugin::DVMPlugin() {
 	connect(this, &QStreamDeckPlugin::eventReceived, this, &DVMPlugin::onStreamDeckEventReceived);
 
 	connect(&discord, &QDiscord::messageReceived, this, &DVMPlugin::onDiscordMessageReceived);
-	connect(&discord, &QDiscord::avatarReady, this, &DVMPlugin::buttonsUpdateRequested);
 	connect(&discord, &QDiscord::connected, this, [this] {
 		discordReconnectFailures_ = 0;
 		discordReconnectTimer_.stop();
@@ -54,7 +57,6 @@ DVMPlugin::DVMPlugin() {
 	discordReconnectTimer_.setInterval(2500);
 	discordReconnectTimer_.setSingleShot(true);
 	discordReconnectTimer_.callOnTimeout(this, &DVMPlugin::connectToDiscord);
-	discordReconnectTimer_.start();
 
 	connect(this, &DVMPlugin::globalSettingsChanged, this, [this] {
 		QTimer::singleShot(0, this, [this] {
@@ -88,12 +90,16 @@ void DVMPlugin::connectToDiscord() {
 
 	const QString clientID = globalSetting("client_id").toString().trimmed();
 	const QString clientSecret = globalSetting("client_secret").toString().trimmed();
+	if(!rejectedClientID_.isEmpty() && clientID == rejectedClientID_)
+		return;
+
 	isDiscordConnecting = true;
 	emit buttonsUpdateRequested();
 	const bool connected = discord.connect(clientID, clientSecret, QStringLiteral("http://localhost:1337/callback"));
 	isDiscordConnecting = false;
 
 	if(connected) {
+		rejectedClientID_.clear();
 		connectedClientID_ = clientID;
 		connectedClientSecret_ = clientSecret;
 		// Subscribe to voice channel select event
@@ -116,6 +122,15 @@ void DVMPlugin::connectToDiscord() {
 	}
 	else {
 		emit buttonsUpdateRequested();
+		if(discord.connectionError() == QStringLiteral("BAD CLIENT")) {
+			rejectedClientID_ = clientID;
+			discordReconnectTimer_.stop();
+			return;
+		}
+		if(discord.connectionError() == QStringLiteral("NO ID/SECRET")) {
+			discordReconnectTimer_.stop();
+			return;
+		}
 		scheduleDiscordReconnect();
 	}
 }
@@ -183,6 +198,44 @@ void DVMPlugin::adjustVoiceChannelMemberVolume(VoiceChannelMember &vcm, float st
 		});
 		emit buttonsUpdateRequested();
 	}
+}
+
+QPixmap DVMPlugin::getUserAvatar(const QString &userId, const QString &avatarHash) {
+	if(userId.isEmpty() || avatarHash.isEmpty())
+		return {};
+
+	const QString cacheKey = userId + '_' + avatarHash;
+	const auto cachedAvatar = avatarCache_.constFind(cacheKey);
+	if(cachedAvatar != avatarCache_.cend())
+		return cachedAvatar.value();
+
+	if(avatarDownloadsInFlight_.contains(cacheKey)
+			|| avatarRetryAfter_.value(cacheKey) > QDateTime::currentMSecsSinceEpoch())
+		return {};
+
+	avatarDownloadsInFlight_.insert(cacheKey);
+	const QUrl avatarUrl(QStringLiteral("https://cdn.discordapp.com/avatars/%1/%2.png?size=128")
+						 .arg(userId, avatarHash));
+	QNetworkReply *reply = avatarNetworkManager_.get(QNetworkRequest(avatarUrl));
+	connect(reply, &QNetworkReply::finished, this, [this, reply, cacheKey] {
+		avatarDownloadsInFlight_.remove(cacheKey);
+		const QByteArray avatarData = reply->readAll();
+		const bool networkOk = reply->error() == QNetworkReply::NoError;
+		reply->deleteLater();
+
+		const QPixmap avatar = networkOk ? QPixmap::fromImage(QImage::fromData(avatarData)) : QPixmap{};
+		if(avatar.isNull()) {
+			qWarning() << "Failed to load Discord avatar" << cacheKey;
+			avatarRetryAfter_[cacheKey] = QDateTime::currentMSecsSinceEpoch() + 60000;
+			return;
+		}
+
+		avatarRetryAfter_.remove(cacheKey);
+		avatarCache_.insert(cacheKey, avatar);
+		emit buttonsUpdateRequested();
+	});
+
+	return {};
 }
 
 void DVMPlugin::updateCurrentVoiceChannel(const QString &newVoiceChannel) {
@@ -285,12 +338,17 @@ void DVMPlugin::onDiscordMessageReceived(const QDiscordMessage &msg) {
 void DVMPlugin::onInitialized() {
 	setGlobalSettingDefault("voiceChannelVolumeButtonStep", 5);
 	setGlobalSettingDefault("voiceChannelVolumeEncoderStep", 5);
-
-	connectToDiscord();
 }
 
 void DVMPlugin::onStreamDeckEventReceived(const QStreamDeckEvent &e) {
 	using ET = QStreamDeckEvent::EventType;
+
+	// deviceDidConnect proves that WebSocket registration with Stream Deck has
+	// completed. Only then is it safe to begin potentially blocking Discord IPC
+	// and OAuth work during a simultaneous PC/Discord/Stream Deck startup.
+	if(e.eventType == ET::deviceDidConnect && !discord.isConnected()
+			&& !discord.isProcessing() && !discordReconnectTimer_.isActive())
+		discordReconnectTimer_.start(0);
 
 	// Try connecting to discord whenever any button is pressed
 	if(!discord.isConnected() && !discordConnectTimeoutTimer_.isActive() && (e.eventType == ET::touchTap || e.eventType == ET::keyDown || e.eventType == ET::dialDown || e.eventType == ET::dialUp || e.eventType == ET::dialRotate)) {

@@ -33,14 +33,14 @@
       "States": [
         {
           "Image": "icons/noicon",
-          "ShowTitle": true,
+          "ShowTitle": false,
           "TitleAlignment": "middle",
           "FontFamily": "Verdana",
           "FontSize": 8
         },
         {
           "Image": "icons/noicon",
-          "ShowTitle": true,
+          "ShowTitle": false,
           "TitleAlignment": "middle",
           "FontFamily": "Verdana",
           "FontSize": 8

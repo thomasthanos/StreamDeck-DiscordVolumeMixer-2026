@@ -23,6 +23,35 @@ if (!(Test-Path "build\CMakeCache.txt")) {
 Write-Host "`n[2/3] Compiling C++ binary..." -ForegroundColor Yellow
 cmake --build build -j8
 
+# Sign the executable before packaging. A production release should set
+# DVM_CODE_SIGNING_CERT_THUMBPRINT to a publicly trusted/WDAC-approved signer.
+$defaultDevelopmentThumbprint = "EF02B8D0092AFBE08C4307158F60FAA78499028F"
+$signingThumbprint = if ($env:DVM_CODE_SIGNING_CERT_THUMBPRINT) {
+    $env:DVM_CODE_SIGNING_CERT_THUMBPRINT
+} else {
+    $defaultDevelopmentThumbprint
+}
+$signingCertificatePath = "Cert:\CurrentUser\My\$signingThumbprint"
+$builtExecutable = "$PSScriptRoot\bin\Release\com.thomast.discordmixer.sdPlugin\bin\streamdeck-discordmixer.exe"
+
+if ((Test-Path -LiteralPath $signingCertificatePath) -and (Test-Path -LiteralPath $builtExecutable)) {
+    Write-Host "Signing plugin executable..." -ForegroundColor Yellow
+    $signingCertificate = Get-Item -LiteralPath $signingCertificatePath
+    if (!$signingCertificate.HasPrivateKey) {
+        throw "Code-signing certificate has no accessible private key: $signingThumbprint"
+    }
+
+    $signature = Set-AuthenticodeSignature -LiteralPath $builtExecutable `
+        -Certificate $signingCertificate -HashAlgorithm SHA256 -IncludeChain All
+    if (!$signature.SignerCertificate -or $signature.SignerCertificate.Thumbprint -ne $signingThumbprint) {
+        throw "Failed to apply the expected Authenticode signature."
+    }
+
+    Write-Host "Signed with certificate: $signingThumbprint ($($signature.Status))" -ForegroundColor Cyan
+} else {
+    Write-Host "[WARNING] Code-signing certificate not found; package will be unsigned." -ForegroundColor Yellow
+}
+
 # 4. Install & Deploy Qt runtime to bin/Release bundle
 Write-Host "`n[3/3] Packaging plugin bundle & deploying Qt DLLs..." -ForegroundColor Yellow
 cmake --install build
