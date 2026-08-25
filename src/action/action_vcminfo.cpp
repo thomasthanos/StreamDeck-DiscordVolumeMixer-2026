@@ -24,6 +24,23 @@ void Action_VCMInfo::update() {
 		update_encoder();
 }
 
+static QString formatButtonNick(const QString &rawNick) {
+	const QString nick = rawNick.trimmed();
+	if(nick.length() <= 8)
+		return nick;
+
+	// If contains space, e.g. "John Smith" -> "John S."
+	const int spaceIdx = nick.indexOf(' ');
+	if(spaceIdx > 0 && spaceIdx <= 7) {
+		if(spaceIdx + 2 <= nick.length() && !nick.at(spaceIdx + 1).isSpace())
+			return nick.left(spaceIdx + 2) + ".";
+		return nick.left(spaceIdx);
+	}
+
+	// Truncate with clean ellipsis (7 chars + ellipsis = 8 chars total)
+	return nick.left(7) + QString::fromUtf8("…");
+}
+
 void Action_VCMInfo::update_button() {
 	const auto vcmp = voiceChannelMember();
 	const VoiceChannelMember &vcm = vcmp ? *vcmp.mem : VoiceChannelMember::null;
@@ -38,8 +55,11 @@ void Action_VCMInfo::update_button() {
 			newTitle = "LOADING...";
 		else if(!plugin()->discord.isConnected())
 			newTitle = plugin()->discord.connectionError();
-		else if(vcmp)
-			newTitle = QStringLiteral("%1\n%3\n%2").arg(vcm.nick, volumeStr, isSpeaking ? ">>SPEAKING<<" : vcm.isMuted ? "##" : "");
+		else if(vcmp) {
+			const QString nickStr = formatButtonNick(vcm.nick);
+			const QString statusStr = isSpeaking ? "SPEAKING" : (vcm.isMuted ? "MUTED" : "");
+			newTitle = QStringLiteral("%1\n%3\n%2").arg(nickStr, volumeStr, statusStr);
+		}
 		else if(plugin()->voiceChannelMembers.isEmpty() && !plugin()->globalSetting("hideNobodyInVoiceChatText").toBool())
 			newTitle = QString("NOBODY\nIN\nVOICE CHAT");
 
