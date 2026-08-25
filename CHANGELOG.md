@@ -17,6 +17,12 @@ versions follow `manifest.json`.
 - **Stream Deck + Dial Enhancements**: Antialiased circular avatar clipping and dynamic color rings for rotary encoder LCD screens.
 - **Fast-Path Reconnection**: Immediate 5ms local authentication with cached access tokens.
 
+- **3D Apple Squircle Icon Redesign**: Complete visual overhaul of all 25 stream deck icons with modern Apple squircle 3D styling, glass hairline highlights, and specular reflections.
+- **Deep Obsidian Black Contrast**: Specially tuned deep pitch-black gradients (`#18191C` ➔ `#0A0B0C`) for maximum contrast and zero backlight bleed on Stream Deck LCD screens.
+- **Smart Nickname Padding & Formatting**: Automatic name elision with ellipsis for long usernames (`karaflo…`), preventing text clipping on button borders.
+- **Glowing Speaking Deco**: Refined multi-layer green neon aura with soft ambient bloom for active speakers.
+- **One-Click Release Packaging**: Automated `build.ps1` producing `.streamDeckPlugin` and standalone zip packages ready for GitHub releases.
+
 ### Changed
 - Upgraded build architecture to **Qt 6.8+ LTS** and **C++20**.
 - Modernized documentation with custom animated SVGs, specification cards, and clean troubleshooting guides.
