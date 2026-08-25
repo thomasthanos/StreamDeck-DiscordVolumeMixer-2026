@@ -68,11 +68,11 @@ function Draw-AppleTile([System.Drawing.Graphics]$g, [float]$x, [float]$y, [floa
 
 function Draw-Speaker([System.Drawing.Graphics]$g, $color) {
     $path = New-Object System.Drawing.Drawing2D.GraphicsPath
-    $path.AddLine(30.0, 60.0, 50.0, 60.0)
-    $path.AddLine(50.0, 60.0, 75.0, 40.0)
-    $path.AddLine(75.0, 40.0, 75.0, 104.0)
-    $path.AddLine(75.0, 104.0, 50.0, 84.0)
-    $path.AddLine(50.0, 84.0, 30.0, 84.0)
+    $path.AddLine(25.0, 60.0, 45.0, 60.0)
+    $path.AddLine(45.0, 60.0, 70.0, 40.0)
+    $path.AddLine(70.0, 40.0, 70.0, 104.0)
+    $path.AddLine(70.0, 104.0, 45.0, 84.0)
+    $path.AddLine(45.0, 84.0, 25.0, 84.0)
     $path.CloseFigure()
     
     $brush = New-Object System.Drawing.SolidBrush($color)
@@ -101,10 +101,10 @@ $gNoAudio = [System.Drawing.Graphics]::FromImage($bmpNoAudio)
 $gNoAudio.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
 # Tile
-Draw-AppleTile $gNoAudio 10.0 10.0 124.0 124.0 ([System.Drawing.Color]::FromArgb(0x3B, 0x3B, 0x3B)) ([System.Drawing.Color]::FromArgb(0x1E, 0x1E, 0x1E)) 30.0
+Draw-AppleTile $gNoAudio 0.0 0.0 144.0 144.0 ([System.Drawing.Color]::FromArgb(0x3B, 0x3B, 0x3B)) ([System.Drawing.Color]::FromArgb(0x1E, 0x1E, 0x1E)) 30.0
 
 # Clip graphics so the red line doesn't bleed out of the tile!
-$clipPath = Create-RoundedRectPath 10.0 10.0 124.0 124.0 30.0
+$clipPath = Create-RoundedRectPath 0.0 0.0 144.0 144.0 30.0
 $gNoAudio.SetClip($clipPath)
 
 # White Speaker
@@ -115,8 +115,8 @@ $waveColor = [System.Drawing.Color]::FromArgb(160, 255, 255, 255)
 $penW = New-Object System.Drawing.Pen($waveColor, 6.0)
 $penW.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
 $penW.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
-$gNoAudio.DrawArc($penW, 85, 60, 20, 24, -60, 120)
-$gNoAudio.DrawArc($penW, 85, 45, 40, 54, -60, 120)
+$gNoAudio.DrawArc($penW, 75, 60, 20, 24, -60, 120)
+$gNoAudio.DrawArc($penW, 75, 45, 40, 54, -60, 120)
 
 # Red Strike Line (stays within clip)
 $redPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(0xFF, 0x3B, 0x30), 8.0)
@@ -138,7 +138,7 @@ $gDeco.Clear([System.Drawing.Color]::Transparent)
 
 # Green Neon Ring over the tile (Tile bounds are 10,10 to 134,134)
 # Let's draw it exactly matching the tile's outer bounds, but as a neon stroke.
-$ringPath = Create-RoundedRectPath 8.0 8.0 128.0 128.0 32.0
+$ringPath = Create-RoundedRectPath 2.0 2.0 140.0 140.0 16.0
 
 $neonBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(180, 0, 255, 100))
 $neonPen = New-Object System.Drawing.Pen($neonBrush, 4.0)
