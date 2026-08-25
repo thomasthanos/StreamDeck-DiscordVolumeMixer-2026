@@ -28,7 +28,7 @@ cmake --install build
 
 # 5. Copy plugin bundle to Stream Deck AppData
 $sourceBundle = "$PSScriptRoot\bin\Release\cz.danol.discordmixer.sdPlugin"
-$targetAppData = "$env:APPDATA\Elgato\StreamDeck\Plugins\cz.danol.discordmixer.sdPlugin"
+$pluginsDir = "$env:APPDATA\Elgato\StreamDeck\Plugins"
 
 if (Test-Path $sourceBundle) {
     Write-Host "`nDeploying to Stream Deck AppData..." -ForegroundColor Green
@@ -40,7 +40,7 @@ if (Test-Path $sourceBundle) {
             Stop-Process -Name "streamdeck-discordmixer" -Force -ErrorAction SilentlyContinue
             Start-Sleep -Milliseconds 500
         }
-        Copy-Item -Path "$sourceBundle" -Destination "$env:APPDATA\Elgato\StreamDeck\Plugins\" -Recurse -Force
+        Copy-Item -Path "$sourceBundle" -Destination "$pluginsDir\" -Recurse -Force
         Write-Host "`n=========================================" -ForegroundColor Green
         Write-Host " BUILD & DEPLOY COMPLETE!                " -ForegroundColor Green
         Write-Host "=========================================" -ForegroundColor Green
