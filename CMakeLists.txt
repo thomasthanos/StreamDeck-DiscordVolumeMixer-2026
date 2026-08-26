@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # Build tested on MSVC 2022 x64
 
-project(streamdeck-discordmixer VERSION 2.0.7 LANGUAGES CXX)
+project(streamdeck-discordmixer VERSION 2.0.8 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

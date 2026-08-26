@@ -1,11 +1,46 @@
-# StreamDeck Discord Volume Mixer - Automated Build & Deploy Script
+# StreamDeck Discord Volume Mixer - Clean Release Build & Deploy Script
+
+param(
+    [switch]$SkipDeploy,
+    [switch]$KeepBuildArtifacts
+)
 
 $ErrorActionPreference = "Stop"
-$releaseVersion = "2.0.7"
+$projectRoot = $PSScriptRoot
+$buildDir = Join-Path $projectRoot "build"
+$binDir = Join-Path $projectRoot "bin"
+$releaseDir = Join-Path $projectRoot "release"
+$manifestPath = Join-Path $releaseDir "manifest.json"
+
+if (!(Test-Path -LiteralPath $manifestPath)) {
+    throw "Plugin manifest not found: $manifestPath"
+}
+
+$manifestVersion = (Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json).Version
+$releaseVersion = $manifestVersion -replace '\.0$', ''
+
+function Assert-NativeCommandSucceeded([string]$stepName) {
+    if ($LASTEXITCODE -ne 0) {
+        throw "$stepName failed with exit code $LASTEXITCODE."
+    }
+}
 
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host " Building StreamDeck Discord Volume Mixer " -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
+Write-Host " Clean release: v$releaseVersion" -ForegroundColor Cyan
+
+# Always start from a clean build and remove only generated release archives.
+Write-Host "`n[1/5] Removing previous generated files..." -ForegroundColor Yellow
+foreach ($generatedDir in @($buildDir, $binDir)) {
+    if (Test-Path -LiteralPath $generatedDir) {
+        Remove-Item -LiteralPath $generatedDir -Recurse -Force
+    }
+}
+Get-ChildItem -LiteralPath $releaseDir -File | Where-Object {
+    $_.Extension -eq ".streamDeckPlugin" -or
+    $_.Name -like "StreamDeck-DiscordVolumeMixer-v*-Windows-x64.zip"
+} | Remove-Item -Force
 
 # 1. Setup Toolchain Paths
 $qtRoot = "C:\Users\Thomas\Documents\Codex\2026-08-25\c-users-thomas-downloads-streamdeck-discordvolumemixer2\work\qt\6.8.3\mingw_64"
@@ -14,15 +49,15 @@ $cmakeBin = "C:\Users\Thomas\Documents\Codex\2026-08-25\c-users-thomas-downloads
 
 if (Test-Path $qtBin) { $env:PATH = "$qtBin;$cmakeBin;" + $env:PATH }
 
-# 2. Configure (if build folder does not exist)
-if (!(Test-Path "build\CMakeCache.txt")) {
-    Write-Host "`n[1/3] Configuring CMake..." -ForegroundColor Yellow
-    cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$qtRoot"
-}
+# 2. Configure a fresh Release build
+Write-Host "`n[2/5] Configuring CMake Release..." -ForegroundColor Yellow
+cmake -S $projectRoot -B $buildDir -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$qtRoot"
+Assert-NativeCommandSucceeded "CMake configuration"
 
 # 3. Compile
-Write-Host "`n[2/3] Compiling C++ binary..." -ForegroundColor Yellow
-cmake --build build -j8
+Write-Host "`n[3/5] Compiling C++ binary..." -ForegroundColor Yellow
+cmake --build $buildDir --config Release -j8
+Assert-NativeCommandSucceeded "Compilation"
 
 # Sign the executable before packaging. A production release should set
 # DVM_CODE_SIGNING_CERT_THUMBPRINT to a publicly trusted/WDAC-approved signer.
@@ -54,21 +89,18 @@ if ((Test-Path -LiteralPath $signingCertificatePath) -and (Test-Path -LiteralPat
 }
 
 # 4. Install & Deploy Qt runtime to bin/Release bundle
-Write-Host "`n[3/3] Packaging plugin bundle & deploying Qt DLLs..." -ForegroundColor Yellow
-cmake --install build
+Write-Host "`n[4/5] Assembling plugin bundle and Qt runtime..." -ForegroundColor Yellow
+cmake --install $buildDir --config Release
+Assert-NativeCommandSucceeded "Bundle installation"
 
 # 5. Create GitHub Release Package (.streamDeckPlugin & .zip) in release/
 $sourceBundle = "$PSScriptRoot\bin\Release\com.thomast.discordmixer.sdPlugin"
-$releaseDir = "$PSScriptRoot\release"
-if (!(Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null }
 $streamDeckPluginFile = "$releaseDir\com.thomast.discordmixer.streamDeckPlugin"
 $zipReleaseFile = "$releaseDir\StreamDeck-DiscordVolumeMixer-v$releaseVersion-Windows-x64.zip"
 
-if (Test-Path $streamDeckPluginFile) { Remove-Item $streamDeckPluginFile -Force }
-if (Test-Path $zipReleaseFile) { Remove-Item $zipReleaseFile -Force }
-
-Write-Host "`n[4/4] Creating official Elgato Marketplace Release package in release/..." -ForegroundColor Yellow
+Write-Host "`n[5/5] Creating official Elgato release package..." -ForegroundColor Yellow
 npx -y @elgato/cli pack "$sourceBundle" --output "$releaseDir" -f
+Assert-NativeCommandSucceeded "Elgato packaging"
 Copy-Item "$streamDeckPluginFile" -Destination "$zipReleaseFile" -Force
 Write-Host "Created: release\com.thomast.discordmixer.streamDeckPlugin" -ForegroundColor Cyan
 Write-Host "Created: release\StreamDeck-DiscordVolumeMixer-v$releaseVersion-Windows-x64.zip" -ForegroundColor Cyan
@@ -78,7 +110,7 @@ $pluginsDir = "$env:APPDATA\Elgato\StreamDeck\Plugins"
 $pluginDestination = Join-Path $pluginsDir "com.thomast.discordmixer.sdPlugin"
 $streamDeckExecutable = Join-Path $env:ProgramFiles "Elgato\StreamDeck\StreamDeck.exe"
 
-if (Test-Path $sourceBundle) {
+if (!$SkipDeploy -and (Test-Path $sourceBundle)) {
     Write-Host "`nDeploying to Stream Deck AppData..." -ForegroundColor Green
     $streamDeckWasRunning = [bool](Get-Process "StreamDeck" -ErrorAction SilentlyContinue)
     try {
@@ -106,7 +138,18 @@ if (Test-Path $sourceBundle) {
     finally {
         if ($streamDeckWasRunning -and (Test-Path -LiteralPath $streamDeckExecutable)) {
             Write-Host "Restarting Stream Deck..." -ForegroundColor Yellow
-            Start-Process -FilePath $streamDeckExecutable -WindowStyle Hidden
+            Start-Process -FilePath $streamDeckExecutable
+            Start-Sleep -Seconds 2
+            if (!(Get-Process "StreamDeck" -ErrorAction SilentlyContinue)) {
+                throw "Stream Deck did not restart after deployment."
+            }
         }
     }
 }
+
+if (!$KeepBuildArtifacts) {
+    Write-Host "`nRemoving temporary build and bin folders..." -ForegroundColor Yellow
+    Remove-Item -LiteralPath $buildDir, $binDir -Recurse -Force
+}
+
+Write-Host "`nRelease build finished successfully." -ForegroundColor Green

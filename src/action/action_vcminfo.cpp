@@ -4,6 +4,7 @@
 #include <QPainterPath>
 #include <QPen>
 #include <QLinearGradient>
+#include <QFontMetricsF>
 
 #include <qtstreamdeck2/qstreamdeckpropertyinspectorbuilder.h>
 
@@ -66,8 +67,8 @@ void drawAvatarPlaceholder(QPainter &painter, const QRectF &avatarRect) {
 	painter.drawPath(shoulders);
 }
 
-void drawMutedBadge(QPainter &painter) {
-	const QRectF badgeRect(93, 59, 30, 30);
+void drawMutedBadge(QPainter &painter, const QRectF &avatarRect) {
+	const QRectF badgeRect(avatarRect.right() - 25, avatarRect.bottom() - 28, 32, 32);
 	painter.setPen(QPen(QColor("#0A0B0C"), 3));
 	painter.setBrush(QColor("#ED4245"));
 	painter.drawEllipse(badgeRect);
@@ -75,12 +76,14 @@ void drawMutedBadge(QPainter &painter) {
 	// Small microphone plus slash; kept deliberately bold for 72 px devices.
 	painter.setBrush(Qt::NoBrush);
 	painter.setPen(QPen(Qt::white, 2.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-	painter.drawRoundedRect(QRectF(105, 65, 6, 11), 3, 3);
-	painter.drawArc(QRectF(102, 68, 12, 12), 195 * 16, 150 * 16);
-	painter.drawLine(QPointF(108, 79), QPointF(108, 82));
-	painter.drawLine(QPointF(103, 82), QPointF(113, 82));
+	const QPointF center = badgeRect.center();
+	painter.drawRoundedRect(QRectF(center.x() - 3, center.y() - 8, 6, 11), 3, 3);
+	painter.drawArc(QRectF(center.x() - 6, center.y() - 5, 12, 12), 195 * 16, 150 * 16);
+	painter.drawLine(QPointF(center.x(), center.y() + 7), QPointF(center.x(), center.y() + 10));
+	painter.drawLine(QPointF(center.x() - 5, center.y() + 10), QPointF(center.x() + 5, center.y() + 10));
 	painter.setPen(QPen(Qt::white, 3, Qt::SolidLine, Qt::RoundCap));
-	painter.drawLine(QPointF(100, 64), QPointF(116, 82));
+	painter.drawLine(badgeRect.topLeft() + QPointF(7, 6),
+					 badgeRect.bottomRight() - QPointF(7, 6));
 }
 
 QImage renderButtonTile(const VoiceChannelMember *member, const QImage &avatar,
@@ -111,7 +114,9 @@ QImage renderButtonTile(const VoiceChannelMember *member, const QImage &avatar,
 		return tile;
 	}
 
-	const QRectF avatarRect(36, 8, 72, 72);
+	// 86 px becomes 43 physical pixels on 72 px Stream Deck keys. This is large
+	// enough for faces to remain recognizable without crowding the labels.
+	const QRectF avatarRect(29, 5, 86, 86);
 	const bool isMuted = member->isMuted;
 	const QColor ringColor = isMuted ? QColor("#ED4245")
 									 : (isSpeaking ? QColor("#57F287") : QColor("#4F545C"));
@@ -156,36 +161,63 @@ QImage renderButtonTile(const VoiceChannelMember *member, const QImage &avatar,
 	painter.drawEllipse(avatarRect);
 
 	if(isMuted)
-		drawMutedBadge(painter);
+		drawMutedBadge(painter, avatarRect);
 
 	QFont usernameFont(QStringLiteral("Segoe UI"));
-	usernameFont.setPixelSize(16);
+	usernameFont.setPixelSize(20);
 	usernameFont.setWeight(QFont::Bold);
-	painter.setFont(usernameFont);
-	painter.setPen(Qt::white);
 	const QString username = formatButtonNick(member->nick);
-	painter.drawText(QRectF(6, 85, 132, 25), Qt::AlignCenter | Qt::TextSingleLine, username);
+	while(usernameFont.pixelSize() > 15
+		  && QFontMetricsF(usernameFont).horizontalAdvance(username) > 132)
+		usernameFont.setPixelSize(usernameFont.pixelSize() - 1);
+	painter.setFont(usernameFont);
+	painter.setPen(QColor("#F2F3F5"));
+	painter.drawText(QRectF(5, 94, 134, 24), Qt::AlignCenter | Qt::TextSingleLine, username);
 
 	QString status;
-	QColor statusColor("#B9BBBE");
+	QColor accentColor("#B9BBBE");
 	if(isMuted) {
 		status = QStringLiteral("MUTED");
-		statusColor = QColor("#ED4245");
+		accentColor = QColor("#ED4245");
 	}
 	else if(isSpeaking) {
-		status = QStringLiteral("SPEAKING");
-		statusColor = QColor("#57F287");
-	}
-	else {
-		status = QStringLiteral("%1%").arg(qRound(member->volume));
+		status = QStringLiteral("TALKING");
+		accentColor = QColor("#57F287");
 	}
 
-	QFont statusFont(QStringLiteral("Segoe UI"));
-	statusFont.setPixelSize(13);
-	statusFont.setWeight(QFont::DemiBold);
-	painter.setFont(statusFont);
-	painter.setPen(statusColor);
-	painter.drawText(QRectF(6, 111, 132, 22), Qt::AlignCenter | Qt::TextSingleLine, status);
+	// Keep the volume visible in every state. Previously SPEAKING/MUTED replaced
+	// it, making the most important mixer value disappear precisely when active.
+	const QRectF infoPill(6, 119, 132, 21);
+	QColor pillColor = accentColor;
+	pillColor.setAlpha(isMuted || isSpeaking ? 42 : 24);
+	painter.setPen(QPen(QColor(255, 255, 255, 24), 1));
+	painter.setBrush(pillColor);
+	painter.drawRoundedRect(infoPill, 7, 7);
+
+	const QString volume = QStringLiteral("%1%").arg(qRound(member->volume));
+	if(status.isEmpty()) {
+		QFont volumeFont(QStringLiteral("Segoe UI"));
+		volumeFont.setPixelSize(18);
+		volumeFont.setWeight(QFont::Bold);
+		painter.setFont(volumeFont);
+		painter.setPen(QColor("#F2F3F5"));
+		painter.drawText(infoPill, Qt::AlignCenter | Qt::TextSingleLine, volume);
+	}
+	else {
+		QFont statusFont(QStringLiteral("Segoe UI"));
+		statusFont.setPixelSize(11);
+		statusFont.setWeight(QFont::Bold);
+		painter.setFont(statusFont);
+		painter.setPen(accentColor);
+		painter.drawText(QRectF(10, 119, 70, 21), Qt::AlignCenter | Qt::TextSingleLine, status);
+
+		QFont volumeFont(QStringLiteral("Segoe UI"));
+		volumeFont.setPixelSize(17);
+		volumeFont.setWeight(QFont::Bold);
+		painter.setFont(volumeFont);
+		painter.setPen(QColor("#F2F3F5"));
+		painter.drawText(QRectF(77, 119, 57, 21), Qt::AlignCenter | Qt::TextSingleLine, volume);
+	}
 
 	return tile;
 }
