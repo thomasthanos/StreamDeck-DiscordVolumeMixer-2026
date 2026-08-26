@@ -10,7 +10,7 @@ $projectRoot = $PSScriptRoot
 $buildDir = Join-Path $projectRoot "build"
 $binDir = Join-Path $projectRoot "bin"
 $releaseDir = Join-Path $projectRoot "release"
-$manifestPath = Join-Path $releaseDir "manifest.json"
+$manifestPath = Join-Path $projectRoot "src\plugin\manifest.json"
 
 if (!(Test-Path -LiteralPath $manifestPath)) {
     throw "Plugin manifest not found: $manifestPath"
@@ -30,17 +30,15 @@ Write-Host " Building StreamDeck Discord Volume Mixer " -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host " Clean release: v$releaseVersion" -ForegroundColor Cyan
 
-# Always start from a clean build and remove only generated release archives.
+# Always start clean. release/ contains generated output only, so replacing the
+# directory cannot remove any source assets.
 Write-Host "`n[1/5] Removing previous generated files..." -ForegroundColor Yellow
-foreach ($generatedDir in @($buildDir, $binDir)) {
+foreach ($generatedDir in @($buildDir, $binDir, $releaseDir)) {
     if (Test-Path -LiteralPath $generatedDir) {
         Remove-Item -LiteralPath $generatedDir -Recurse -Force
     }
 }
-Get-ChildItem -LiteralPath $releaseDir -File | Where-Object {
-    $_.Extension -eq ".streamDeckPlugin" -or
-    $_.Name -like "StreamDeck-DiscordVolumeMixer-v*-Windows-x64.zip"
-} | Remove-Item -Force
+New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 
 # 1. Setup Toolchain Paths
 $qtRoot = "C:\Users\Thomas\Documents\Codex\2026-08-25\c-users-thomas-downloads-streamdeck-discordvolumemixer2\work\qt\6.8.3\mingw_64"

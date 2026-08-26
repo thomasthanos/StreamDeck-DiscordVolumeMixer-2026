@@ -4,8 +4,7 @@
 /build-*/
 /build_*/
 /cmake-build-*/
-/release/*.zip
-/release/*.streamDeckPlugin
+/release/
 /out/
 CMakeLists.txt.user*
 CMakeUserPresets.json

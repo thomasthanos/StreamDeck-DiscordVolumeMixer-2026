@@ -40,7 +40,7 @@ target_compile_definitions(${target} PRIVATE QT_DISABLE_DEPRECATED_BEFORE=0x0602
 # Embed the marketplace artwork into the Windows executable so Explorer,
 # Task Manager and security dialogs show the plugin's own icon.
 if (WIN32)
-    set(plugin_icon_file "${PROJECT_SOURCE_DIR}/release/icons/plugin.ico")
+    set(plugin_icon_file "${PROJECT_SOURCE_DIR}/src/plugin/icons/plugin.ico")
     configure_file("${PROJECT_SOURCE_DIR}/src/windows/plugin.rc.in"
                    "${CMAKE_CURRENT_BINARY_DIR}/plugin.rc" @ONLY)
     target_sources(${target} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/plugin.rc")
@@ -66,12 +66,9 @@ target_include_directories(${target} PRIVATE
 # Deployment
 # ===========================================
 
-# release/ is the single source for the plugin manifest, profiles and assets.
-# Generated archives live beside it but must never be copied into the bundle.
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/release/" DESTINATION ${target_directory}
-        PATTERN "bin" EXCLUDE
-        PATTERN "*.zip" EXCLUDE
-        PATTERN "*.streamDeckPlugin" EXCLUDE)
+# src/plugin contains the manifest, profiles and static plugin assets.
+# release/ is reserved exclusively for generated distributable packages.
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/src/plugin/" DESTINATION ${target_directory})
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/src/deps/qtstreamdeck2/dist/" DESTINATION ${target_directory})
 
 # Run windeployqt
