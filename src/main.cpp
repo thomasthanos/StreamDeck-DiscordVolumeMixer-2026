@@ -15,7 +15,15 @@ void messageLogger(QtMsgType type, const QMessageLogContext &, const QString &ms
 		lf.open(QIODevice::WriteOnly);
 
 	if(!clf.isOpen())
+	{
+		// Keep diagnostics useful without allowing an always-running plugin to
+		// grow its log indefinitely.
+		if(clf.size() > 2 * 1024 * 1024) {
+			QFile::remove("clog.previous.txt");
+			QFile::rename("clog.txt", "clog.previous.txt");
+		}
 		clf.open(QIODevice::Append);
+	}
 
 	const char *level = "INFO";
 	switch(type) {

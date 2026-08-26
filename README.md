@@ -29,7 +29,7 @@ Control your Discord voice chat directly from your Stream Deck without Alt-Tabbi
 
 <div align="center">
 
-![Mixer Overview](etc/sshot.png)
+![Mixer Overview](.github/etc/sshot.png)
 
 </div>
 
@@ -46,9 +46,14 @@ Download the latest **[`com.thomast.discordmixer.streamDeckPlugin`](https://gith
    - Under **Redirects**, add `http://localhost:1337/callback` and click **Save Changes**.
 3. Under **Client Information**, copy your **Client ID** and **Client Secret**.
 
+> Discord restricts local RPC access. During development, sign in to the Discord
+> desktop app with the application owner/team account or add that account to the
+> application's RPC tester list. Public distribution requires Discord RPC approval.
+> Treat the Client Secret as a password: never publish it, commit it, or send it in chat.
+
 <div align="center">
 
-![OAuth2 Setup](etc/oauth.png)
+![OAuth2 Setup](.github/etc/oauth.png)
 
 </div>
 
@@ -65,7 +70,8 @@ Download the latest **[`com.thomast.discordmixer.streamDeckPlugin`](https://gith
 | :--- | :--- | :--- |
 | `LOADING...` | Connecting or waiting for approval | Check Discord for an authorization popup |
 | `NO DISCORD` | Discord desktop app is not running | Start Discord and press `Ctrl + R` |
-| `BAD CLIENT` | Client ID is incorrect | Double-check Client ID in Developer Portal |
+| `DISCORD APP REJECTED` / `BAD CLIENT` | Discord rejected the app for RPC | Verify the Client ID, use the owner/team account or an RPC tester, and request Discord RPC approval for public use |
+| `DEAUTHORIZE DISCORD` | Discord has a stale authorization grant for the app | Discord Settings → Authorized Apps → Deauthorize the app, then press the Stream Deck key and authorize again |
 | `BAD ORIGIN` | Redirect URI missing | Add `http://localhost:1337/callback` under OAuth2 Redirects |
 | `NOBODY IN VOICE` | You are not in a voice channel | Join a voice channel with other users |
 
@@ -113,5 +119,3 @@ Source-available for personal, non-commercial use and auditing. Unauthorized mar
 <div align="center">
 <sub>Not affiliated with, endorsed by, or connected to Discord Inc., Elgato, or Corsair.</sub>
 </div>
-
-

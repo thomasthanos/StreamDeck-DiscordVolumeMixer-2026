@@ -35,6 +35,9 @@ public:
 	/// Returns a cached avatar, or starts a non-blocking CDN download and returns null.
 	QPixmap getUserAvatar(const QString &userId, const QString &avatarHash);
 
+	/// Short, user-facing connection state suitable for Stream Deck keys.
+	QString discordStatusText() const;
+
 public:
 	QDiscord discord;
 
@@ -57,6 +60,9 @@ signals:
 private:
 	void updateCurrentVoiceChannel(const QString &newVoiceChannel);
 	void scheduleDiscordReconnect();
+	void migrateLegacySettings();
+	void purgeOauthCache();
+	QByteArray credentialsFingerprint() const;
 
 private slots:
 	void onInitialized();
@@ -66,10 +72,15 @@ private slots:
 private:
 	QTimer discordConnectTimeoutTimer_;
 	QTimer discordReconnectTimer_;
+	QTimer credentialsReconnectTimer_;
 	int discordReconnectFailures_ = 0;
-	QString connectedClientID_;
-	QString connectedClientSecret_;
+	bool streamDeckReady_ = false;
+	QByteArray observedCredentialsFingerprint_;
 	QString rejectedClientID_;
+	qint64 rejectedClientRetryAfter_ = 0;
+	QString oauthRecoveryClientID_;
+	qint64 lastManualReconnectAttempt_ = 0;
+	QString lastConnectionError_;
 
 	QNetworkAccessManager avatarNetworkManager_;
 	QHash<QString, QPixmap> avatarCache_;

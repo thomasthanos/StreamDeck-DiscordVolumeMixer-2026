@@ -199,13 +199,8 @@ void Action_VCMInfo::update_button() {
 	const bool isSpeaking = vcmp && plugin()->speakingVoiceChannelMembers.contains(vcm.userID);
 
 	QString message;
-	if(plugin()->isDiscordConnecting)
-		message = QStringLiteral("LOADING…");
-	else if(!plugin()->discord.isConnected()) {
-		message = plugin()->discord.connectionError().trimmed();
-		if(message.isEmpty())
-			message = QStringLiteral("DISCORD OFFLINE");
-	}
+	if(!plugin()->discord.isConnected())
+		message = plugin()->discordStatusText();
 	else if(!vcmp && plugin()->voiceChannelMembers.isEmpty()
 			&& !plugin()->globalSetting("hideNobodyInVoiceChatText").toBool())
 		message = QStringLiteral("NOBODY IN VOICE CHAT");
@@ -251,10 +246,8 @@ void Action_VCMInfo::update_encoder() {
 
 	{
 		QString newTitle;
-		if(plugin()->isDiscordConnecting)
-			newTitle = "LOADING...";
-		else if(!plugin()->discord.isConnected())
-			newTitle = plugin()->discord.connectionError();
+		if(!plugin()->discord.isConnected())
+			newTitle = plugin()->discordStatusText();
 		else if(vcmp) {
 			if(setting("showPaging").toBool())
 				newTitle += QStringLiteral("%1/%2 ").arg(QString::number(vcmp.userIndex + 1), QString::number(plugin()->voiceChannelMembers.size()));

@@ -1,6 +1,7 @@
 # StreamDeck Discord Volume Mixer - Automated Build & Deploy Script
 
 $ErrorActionPreference = "Stop"
+$releaseVersion = "2.0.7"
 
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host " Building StreamDeck Discord Volume Mixer " -ForegroundColor Cyan
@@ -61,7 +62,7 @@ $sourceBundle = "$PSScriptRoot\bin\Release\com.thomast.discordmixer.sdPlugin"
 $releaseDir = "$PSScriptRoot\release"
 if (!(Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null }
 $streamDeckPluginFile = "$releaseDir\com.thomast.discordmixer.streamDeckPlugin"
-$zipReleaseFile = "$releaseDir\StreamDeck-DiscordVolumeMixer-v2.0.3-Windows-x64.zip"
+$zipReleaseFile = "$releaseDir\StreamDeck-DiscordVolumeMixer-v$releaseVersion-Windows-x64.zip"
 
 if (Test-Path $streamDeckPluginFile) { Remove-Item $streamDeckPluginFile -Force }
 if (Test-Path $zipReleaseFile) { Remove-Item $zipReleaseFile -Force }
@@ -70,30 +71,42 @@ Write-Host "`n[4/4] Creating official Elgato Marketplace Release package in rele
 npx -y @elgato/cli pack "$sourceBundle" --output "$releaseDir" -f
 Copy-Item "$streamDeckPluginFile" -Destination "$zipReleaseFile" -Force
 Write-Host "Created: release\com.thomast.discordmixer.streamDeckPlugin" -ForegroundColor Cyan
-Write-Host "Created: release\StreamDeck-DiscordVolumeMixer-v2.0.3-Windows-x64.zip" -ForegroundColor Cyan
+Write-Host "Created: release\StreamDeck-DiscordVolumeMixer-v$releaseVersion-Windows-x64.zip" -ForegroundColor Cyan
 
 # 6. Copy plugin bundle to Stream Deck AppData (for local testing)
 $pluginsDir = "$env:APPDATA\Elgato\StreamDeck\Plugins"
+$pluginDestination = Join-Path $pluginsDir "com.thomast.discordmixer.sdPlugin"
+$streamDeckExecutable = Join-Path $env:ProgramFiles "Elgato\StreamDeck\StreamDeck.exe"
 
 if (Test-Path $sourceBundle) {
     Write-Host "`nDeploying to Stream Deck AppData..." -ForegroundColor Green
+    $streamDeckWasRunning = [bool](Get-Process "StreamDeck" -ErrorAction SilentlyContinue)
     try {
-        # Check if plugin binary is running
-        $pluginProc = Get-Process "streamdeck-discordmixer" -ErrorAction SilentlyContinue
-        if ($pluginProc) {
-            Write-Host "Stopping running plugin process to update files..." -ForegroundColor Yellow
-            Stop-Process -Name "streamdeck-discordmixer" -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Milliseconds 500
+        if ($streamDeckWasRunning) {
+            Write-Host "Temporarily stopping Stream Deck to release plugin files..." -ForegroundColor Yellow
+            Stop-Process -Name "StreamDeck" -Force -ErrorAction Stop
         }
-        Copy-Item -Path "$sourceBundle" -Destination "$pluginsDir\" -Recurse -Force
+
+        Stop-Process -Name "streamdeck-discordmixer" -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 750
+
+        if (Test-Path -LiteralPath $pluginDestination) {
+            Remove-Item -LiteralPath $pluginDestination -Recurse -Force
+        }
+        Copy-Item -LiteralPath $sourceBundle -Destination $pluginDestination -Recurse -Force
+
         Write-Host "`n=========================================" -ForegroundColor Green
         Write-Host " BUILD, RELEASE & DEPLOY COMPLETE!       " -ForegroundColor Green
         Write-Host "=========================================" -ForegroundColor Green
     }
     catch {
-        Write-Host "`n[NOTE] Could not overwrite files in AppData because Stream Deck is currently running." -ForegroundColor Yellow
-        Write-Host "Close the Stream Deck application and run ./build.ps1 again to update the live plugin." -ForegroundColor Yellow
-        Write-Host "`nThe compiled bundle is ready at: bin/Release/com.thomasthanos.discordmixer.sdPlugin" -ForegroundColor Green
-        Write-Host "The GitHub Release files are ready at: release/" -ForegroundColor Green
+        Write-Host "`n[ERROR] Live plugin deployment failed: $($_.Exception.Message)" -ForegroundColor Red
+        throw
+    }
+    finally {
+        if ($streamDeckWasRunning -and (Test-Path -LiteralPath $streamDeckExecutable)) {
+            Write-Host "Restarting Stream Deck..." -ForegroundColor Yellow
+            Start-Process -FilePath $streamDeckExecutable -WindowStyle Hidden
+        }
     }
 }

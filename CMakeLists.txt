@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # Build tested on MSVC 2022 x64
 
-project(streamdeck-discordmixer VERSION 2.0.3 LANGUAGES CXX)
+project(streamdeck-discordmixer VERSION 2.0.7 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -36,6 +36,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${target_directory}/bin")
 qt_add_executable(${target})
 target_link_libraries(${target} PRIVATE Qt6::WebSockets Qt6::Network Qt6::Gui)
 target_compile_definitions(${target} PRIVATE QT_DISABLE_DEPRECATED_BEFORE=0x060200)
+
+# Embed the marketplace artwork into the Windows executable so Explorer,
+# Task Manager and security dialogs show the plugin's own icon.
+if (WIN32)
+    set(plugin_icon_file "${PROJECT_SOURCE_DIR}/release/icons/plugin.ico")
+    configure_file("${PROJECT_SOURCE_DIR}/src/windows/plugin.rc.in"
+                   "${CMAKE_CURRENT_BINARY_DIR}/plugin.rc" @ONLY)
+    target_sources(${target} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/plugin.rc")
+endif ()
+
 if (MSVC)
     target_compile_options(${target} PRIVATE /W4 /permissive- /EHsc)
 else ()
@@ -47,32 +57,22 @@ endif ()
 # ===========================================
 file(GLOB_RECURSE source_files CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cpp")
 target_sources(${target} PRIVATE ${source_files})
-target_include_directories(${target} PRIVATE "${PROJECT_SOURCE_DIR}/src")
-
-# ===========================================
-# QtStreamDeck
-# ===========================================
-file(GLOB_RECURSE streamdeckplugin_files CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/deps/qtstreamdeck2/*.cpp")
-target_sources(${target} PRIVATE ${streamdeckplugin_files})
-target_include_directories(${target} PRIVATE "${PROJECT_SOURCE_DIR}/deps/qtstreamdeck2")
-
-# ===========================================
-# QtDiscord
-# ===========================================
-file(GLOB_RECURSE discordipc_files CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/deps/qtdiscordipc/*.cpp")
-target_sources(${target} PRIVATE ${discordipc_files})
-target_include_directories(${target} PRIVATE "${PROJECT_SOURCE_DIR}/deps/qtdiscordipc")
+target_include_directories(${target} PRIVATE
+        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_SOURCE_DIR}/src/deps/qtstreamdeck2"
+        "${PROJECT_SOURCE_DIR}/src/deps/qtdiscordipc")
 
 # ===========================================
 # Deployment
 # ===========================================
 
-# Copy files from dist
-# dist/bin contains the upstream 2023 runtime bundle (including obsolete OpenSSL
-# 1.1 DLLs). The executable and current runtime are produced/deployed below.
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/dist/" DESTINATION ${target_directory}
-        PATTERN "bin" EXCLUDE)
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/deps/qtstreamdeck2/dist/" DESTINATION ${target_directory})
+# release/ is the single source for the plugin manifest, profiles and assets.
+# Generated archives live beside it but must never be copied into the bundle.
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/release/" DESTINATION ${target_directory}
+        PATTERN "bin" EXCLUDE
+        PATTERN "*.zip" EXCLUDE
+        PATTERN "*.streamDeckPlugin" EXCLUDE)
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/src/deps/qtstreamdeck2/dist/" DESTINATION ${target_directory})
 
 # Run windeployqt
 get_target_property(QMAKE_FILEPATH Qt6::qmake IMPORTED_LOCATION)
